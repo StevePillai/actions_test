@@ -1,1557 +1,1362 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>A → Z — A Field Guide to the Interactive Web</title>
-<meta name="description" content="A single-page field guide: twenty-six interactive specimens, one for every letter of the alphabet.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔤</text></svg>">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ledger &amp; Compass — Expense Tracker &amp; Investment Planner</title>
+<meta name="description" content="Track monthly expenses, understand your savings rate, and get educational guidance on where that money could go next." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧭</text></svg>" />
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- React (UMD, no build step required) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 
 <style>
 /* ============================================================
-   TOKENS
+   LEDGER & COMPASS — design tokens
+   Palette: ink navy base, warm parchment surfaces in light mode,
+   antique-gold accent, sage for gains, rust for spend.
+   Type: Fraunces (display serif, financial-ledger feel) + Inter
+   (UI/body) + JetBrains Mono (numbers/data).
    ============================================================ */
 :root{
-  --paper:#efead8;
-  --paper-2:#e4dec7;
-  --paper-3:#ffffff;
-  --ink:#1c2321;
-  --ink-soft:#54594f;
-  --ochre:#c1811f;
-  --ochre-dim:#9c6a1a;
-  --teal:#2e6e62;
-  --red:#a8433f;
-  --rule:#c7bd9e;
-  --radius:3px;
-  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
-  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --mono: "Courier New", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --accent: var(--ochre);
-  --shadow: 0 1px 0 rgba(28,35,33,.08);
-}
-[data-theme="dark"]{
-  --paper:#1a1a15;
-  --paper-2:#222219;
-  --paper-3:#141410;
-  --ink:#ece7d6;
-  --ink-soft:#b3ad98;
-  --rule:#3a382a;
-  --shadow: 0 1px 0 rgba(0,0,0,.4);
-}
-@media (prefers-reduced-motion: reduce){
-  *,*::before,*::after{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; scroll-behavior:auto !important; }
+  --ink-950:#0b1220;
+  --ink-900:#0f1a2b;
+  --ink-800:#152238;
+  --ink-700:#1d2f4a;
+  --ink-600:#2b4468;
+  --gold-500:#c9a24b;
+  --gold-400:#dab868;
+  --gold-100:#f4e8c9;
+  --sage-500:#6fa287;
+  --sage-300:#a9cdb9;
+  --rust-500:#c1583b;
+  --rust-300:#e0a793;
+  --parchment-50:#faf8f2;
+  --parchment-100:#f2ede0;
+  --paper:#fffdf8;
+  --ink-text:#1b2433;
+  --muted-light:#6b7385;
+
+  --bg:var(--ink-950);
+  --surface:var(--ink-900);
+  --surface-2:var(--ink-800);
+  --surface-3:var(--ink-700);
+  --border:rgba(201,162,75,0.18);
+  --text:#eee8d8;
+  --text-dim:#9fa8bd;
+  --accent:var(--gold-500);
+  --accent-strong:var(--gold-400);
+  --positive:var(--sage-500);
+  --negative:var(--rust-500);
+  --shadow: 0 10px 30px rgba(0,0,0,0.35);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Courier New', monospace;
 }
 
-/* ============================================================
-   RESET & BASE
-   ============================================================ */
-*{ box-sizing:border-box; }
-html{ scroll-behavior:smooth; }
+[data-theme="light"]{
+  --bg:var(--parchment-50);
+  --surface:var(--paper);
+  --surface-2:var(--parchment-100);
+  --surface-3:#e8e0cc;
+  --border:rgba(43,68,104,0.14);
+  --text:var(--ink-text);
+  --text-dim:#6b7385;
+  --shadow: 0 10px 24px rgba(43,34,10,0.08);
+}
+
+*,*::before,*::after{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
 body{
   margin:0;
-  background:var(--paper);
-  color:var(--ink);
-  font-family:var(--sans);
-  line-height:1.5;
-  transition:background .25s ease,color .25s ease;
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font-body);
+  transition:background .35s ease,color .35s ease;
+  min-height:100vh;
 }
-a{ color:var(--teal); }
-img,svg{ max-width:100%; display:block; }
-button, input, textarea, select{ font-family:inherit; color:inherit; }
-button{ cursor:pointer; }
-:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
-.visually-hidden{
-  position:absolute !important; width:1px; height:1px; padding:0; margin:-1px;
-  overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
-}
-.skip-link{
-  position:absolute; left:8px; top:-48px; background:var(--ink); color:var(--paper);
-  padding:.6em 1em; border-radius:var(--radius); z-index:100; transition:top .2s ease;
-}
-.skip-link:focus{ top:8px; }
+::selection{ background:var(--accent); color:var(--ink-950); }
+a{ color:inherit; }
+button{ font-family:inherit; }
+::-webkit-scrollbar{ width:10px; height:10px; }
+::-webkit-scrollbar-track{ background:transparent; }
+::-webkit-scrollbar-thumb{ background:var(--surface-3); border-radius:8px; }
 
-.wrap{ max-width:760px; margin:0 auto; padding:0 24px; }
+/* focus visibility */
+:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+  border-radius:4px;
+}
 
-/* ============================================================
-   COVER / HEADER
-   ============================================================ */
-.cover{
-  border-bottom:1px solid var(--rule);
-  padding:64px 0 40px;
-  position:relative;
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration:0.001ms !important; transition-duration:0.001ms !important; }
 }
-.cover-eyebrow{
-  font-family:var(--mono); font-size:.72rem; letter-spacing:.04em;
-  color:var(--ink-soft); margin:0 0 18px;
-}
-.cover h1{
-  font-family:var(--serif); font-weight:600; font-size:clamp(2.4rem,7vw,4.2rem);
-  margin:0 0 6px; line-height:1.02; letter-spacing:-.01em;
-}
-.cover h1 em{ font-style:italic; color:var(--ochre); }
-.cover p.lede{
-  font-family:var(--serif); font-size:1.15rem; color:var(--ink-soft); max-width:46ch; margin:12px 0 28px;
-}
-.cover-actions{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
 
-.btn{
-  border:1px solid var(--ink); background:transparent; color:var(--ink);
-  padding:.55em 1.1em; border-radius:var(--radius); font-size:.92rem;
-  display:inline-flex; align-items:center; gap:.5em; transition:transform .12s ease, background .15s ease;
+/* ---------- layout shell ---------- */
+#root{ min-height:100vh; }
+.app-shell{
+  display:grid;
+  grid-template-columns:248px 1fr;
+  min-height:100vh;
 }
-.btn:hover{ background:var(--ink); color:var(--paper); }
-.btn:active{ transform:translateY(1px); }
-.btn.primary{ background:var(--ink); color:var(--paper); }
-.btn.primary:hover{ background:var(--ochre); border-color:var(--ochre); color:#fff; }
-.btn.small{ padding:.35em .75em; font-size:.78rem; }
+@media (max-width: 880px){
+  .app-shell{ grid-template-columns:1fr; }
+}
+
+/* ---------- sidebar ---------- */
+.sidebar{
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  padding:28px 20px;
+  display:flex;
+  flex-direction:column;
+  gap:28px;
+  position:sticky;
+  top:0;
+  height:100vh;
+}
+@media (max-width: 880px){
+  .sidebar{ position:relative; height:auto; border-right:none; border-bottom:1px solid var(--border); }
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.brand-mark{
+  width:38px; height:38px;
+  border-radius:10px;
+  background:linear-gradient(145deg, var(--gold-400), var(--gold-500));
+  display:flex; align-items:center; justify-content:center;
+  font-size:19px;
+  flex-shrink:0;
+  box-shadow:0 4px 14px rgba(201,162,75,0.35);
+}
+.brand-text{ display:flex; flex-direction:column; line-height:1.15; }
+.brand-text strong{ font-family:var(--font-display); font-size:17px; font-weight:600; letter-spacing:0.01em; }
+.brand-text span{ font-size:11px; color:var(--text-dim); }
+
+nav.primary-nav{ display:flex; flex-direction:column; gap:4px; }
+.nav-item{
+  display:flex; align-items:center; gap:12px;
+  padding:10px 12px;
+  border-radius:var(--radius-sm);
+  cursor:pointer;
+  border:1px solid transparent;
+  background:none;
+  color:var(--text-dim);
+  font-size:14px;
+  font-weight:500;
+  text-align:left;
+  width:100%;
+  transition:background .18s ease, color .18s ease, border-color .18s ease;
+}
+.nav-item:hover{ background:var(--surface-2); color:var(--text); }
+.nav-item.active{
+  background:var(--surface-2);
+  color:var(--accent-strong);
+  border-color:var(--border);
+}
+.nav-item .icon{ font-size:16px; width:18px; text-align:center; }
+
+.sidebar-footer{ margin-top:auto; display:flex; flex-direction:column; gap:10px; }
+.month-picker{
+  display:flex; align-items:center; justify-content:space-between;
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  padding:8px 10px;
+  font-family:var(--font-mono);
+  font-size:12px;
+}
+.month-picker button{
+  background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:14px; padding:2px 6px; border-radius:4px;
+}
+.month-picker button:hover{ color:var(--accent-strong); background:var(--surface-3); }
 
 .theme-toggle{
-  position:relative; width:52px; height:28px; border-radius:20px; border:1px solid var(--ink);
-  background:var(--paper-2); padding:2px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:8px 10px;
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  font-size:12px;
+  color:var(--text-dim);
+  background:var(--surface-2);
 }
-.theme-toggle::after{
-  content:"☀︎"; position:absolute; top:1px; left:1px; width:22px; height:22px; border-radius:50%;
-  background:var(--ink); color:var(--paper); display:flex; align-items:center; justify-content:center;
-  font-size:12px; transition:transform .2s ease; transform:translateX(0);
+.switch{
+  width:34px; height:19px; border-radius:20px;
+  background:var(--surface-3);
+  position:relative;
+  cursor:pointer;
+  border:1px solid var(--border);
+  flex-shrink:0;
 }
-[data-theme="dark"] .theme-toggle::after{ content:"☾"; transform:translateX(24px); }
+.switch .knob{
+  position:absolute; top:1px; left:1px;
+  width:15px; height:15px; border-radius:50%;
+  background:var(--accent);
+  transition:left .2s ease;
+}
+.switch.on .knob{ left:16px; }
 
-/* ============================================================
-   INDEX NAV (sticky alphabet)
-   ============================================================ */
-.index-nav{
-  position:sticky; top:0; z-index:20; background:var(--paper); border-bottom:1px solid var(--rule);
-  backdrop-filter: blur(4px);
+/* ---------- main ---------- */
+main.content{
+  padding:32px 40px 80px;
+  max-width:1180px;
+  width:100%;
 }
-.index-nav .wrap{ max-width:920px; }
-.index-list{
-  list-style:none; margin:0; padding:10px 0; display:flex; flex-wrap:wrap; gap:4px; overflow-x:auto;
-}
-.index-list a{
-  display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px;
-  border-radius:50%; font-family:var(--mono); font-size:.74rem; text-decoration:none; color:var(--ink-soft);
-  border:1px solid transparent; flex-shrink:0;
-}
-.index-list a:hover{ border-color:var(--rule); color:var(--ink); }
-.index-list a.active{ background:var(--ink); color:var(--paper); }
-
-/* ============================================================
-   MAIN / ENTRIES
-   ============================================================ */
-main{ max-width:920px; margin:0 auto; padding:0 0 80px; }
-.entry{
-  border-bottom:1px solid var(--rule);
-  padding:44px 24px;
-  scroll-margin-top:56px;
-}
-.entry:nth-child(odd){ background:var(--paper-2); }
-.entry-head{ display:flex; gap:18px; align-items:flex-start; max-width:760px; margin:0 auto; }
-.dropcap{
-  font-family:var(--serif); font-size:2.6rem; font-weight:600; color:var(--ochre);
-  line-height:1; padding-top:4px; width:1.2em; flex-shrink:0; text-align:center;
-}
-.headword{
-  font-family:var(--serif); font-size:1.7rem; font-weight:600; margin:0 0 2px; letter-spacing:-.01em;
-}
-.headword .phon{
-  font-family:var(--mono); font-weight:400; font-size:.85rem; color:var(--ink-soft); margin-left:.5em;
-}
-.pos{ margin:0; font-size:.8rem; color:var(--ink-soft); font-style:italic; }
-.definition{
-  font-family:var(--serif); font-size:1.02rem; color:var(--ink-soft); max-width:760px; margin:14px auto 22px;
-}
-.demo{
-  max-width:760px; margin:0 auto; background:var(--paper-3); border:1px solid var(--rule);
-  border-radius:6px; padding:20px; box-shadow:var(--shadow);
-}
-.demo p.hint{ margin:0 0 12px; font-size:.82rem; color:var(--ink-soft); }
-.row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-.field{ display:flex; flex-direction:column; gap:4px; font-size:.85rem; }
-.field input[type="text"], .field input[type="email"], .field input[type="password"], .field textarea{
-  padding:.5em .6em; border:1px solid var(--rule); border-radius:var(--radius); background:var(--paper);
-  color:var(--ink); font-size:.9rem;
-}
-.field textarea{ font-family:var(--mono); resize:vertical; }
-.error-text{ color:var(--red); font-size:.78rem; min-height:1.1em; }
-.success-text{ color:var(--teal); font-size:.78rem; min-height:1.1em; }
-
-code{ font-family:var(--mono); background:var(--paper-2); padding:.1em .35em; border-radius:3px; font-size:.85em; }
-
-/* ---- reveal-on-scroll (I) ---- */
-.reveal{ opacity:0; transform:translateY(16px); transition:opacity .5s ease, transform .5s ease; }
-.reveal.in{ opacity:1; transform:none; }
-.card-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; }
-.spec-card{
-  border:1px solid var(--rule); border-radius:6px; padding:14px; background:var(--paper);
-  font-size:.85rem;
-}
-.spec-card b{ display:block; font-family:var(--serif); font-size:1rem; margin-bottom:4px; }
-
-/* ---- tooltip (H) ---- */
-[data-tooltip]{ position:relative; }
-.tooltip-bubble{
-  position:fixed; background:var(--ink); color:var(--paper); padding:.4em .7em; border-radius:4px;
-  font-size:.78rem; pointer-events:none; z-index:200; opacity:0; transition:opacity .12s ease; max-width:220px;
-}
-.tooltip-bubble.show{ opacity:1; }
-.chip{
-  display:inline-block; border:1px solid var(--rule); border-radius:20px; padding:.4em 1em; margin:4px 6px 4px 0;
-  font-size:.85rem; background:var(--paper);
+@media (max-width: 640px){
+  main.content{ padding:20px 16px 60px; }
 }
 
-/* ---- gallery (G) ---- */
-.gallery{ position:relative; overflow:hidden; border-radius:6px; }
-.gallery-track{ display:flex; transition:transform .4s ease; }
-.gallery-slide{
-  min-width:100%; height:180px; display:flex; align-items:flex-end; padding:14px;
-  color:#fff; font-family:var(--serif); font-size:1.1rem; text-shadow:0 1px 4px rgba(0,0,0,.4);
+.page-header{
+  display:flex; justify-content:space-between; align-items:flex-end;
+  gap:16px; flex-wrap:wrap;
+  margin-bottom:28px;
 }
-.gallery-dots{ display:flex; gap:6px; justify-content:center; margin-top:10px; }
-.gallery-dots button{
-  width:8px; height:8px; border-radius:50%; border:none; background:var(--rule); padding:0;
+.page-header h1{
+  font-family:var(--font-display);
+  font-weight:600;
+  font-size:clamp(26px,3.4vw,34px);
+  margin:0 0 6px;
+  letter-spacing:-0.01em;
 }
-.gallery-dots button.active{ background:var(--ochre); }
-.gallery-arrow{
-  position:absolute; top:50%; transform:translateY(-50%); background:rgba(0,0,0,.35); color:#fff; border:none;
-  width:32px; height:32px; border-radius:50%; font-size:1rem;
-}
-.gallery-arrow.prev{ left:8px; } .gallery-arrow.next{ right:8px; }
+.page-header p{ margin:0; color:var(--text-dim); font-size:14px; max-width:56ch; }
 
-/* ---- todo (L) ---- */
-.todo-list{ list-style:none; margin:12px 0 0; padding:0; }
-.todo-list li{
-  display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px dashed var(--rule); font-size:.92rem;
+.btn{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:10px 16px;
+  border-radius:var(--radius-sm);
+  border:1px solid var(--border);
+  background:var(--surface-2);
+  color:var(--text);
+  font-size:13.5px; font-weight:600;
+  cursor:pointer;
+  transition:transform .12s ease, background .15s ease, border-color .15s ease;
 }
-.todo-list li.done span{ text-decoration:line-through; color:var(--ink-soft); }
-.todo-list li button{ margin-left:auto; background:none; border:none; color:var(--red); font-size:.85rem; }
+.btn:hover{ background:var(--surface-3); }
+.btn:active{ transform:scale(0.97); }
+.btn-accent{
+  background:var(--accent);
+  border-color:var(--accent);
+  color:#20170a;
+}
+.btn-accent:hover{ background:var(--accent-strong); }
+.btn-ghost{ background:none; }
+.btn-danger{ color:var(--negative); border-color:rgba(193,88,59,0.35); background:none; }
+.btn-danger:hover{ background:rgba(193,88,59,0.1); }
+.btn-sm{ padding:6px 10px; font-size:12.5px; }
 
-/* ---- modal (M) ---- */
-.modal-backdrop{
-  position:fixed; inset:0; background:rgba(20,20,16,.5); display:none; align-items:center; justify-content:center;
-  z-index:300; padding:20px;
+/* stat cards */
+.stat-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:16px;
+  margin-bottom:28px;
 }
-.modal-backdrop.open{ display:flex; }
-.modal-box{
-  background:var(--paper); border:1px solid var(--rule); border-radius:8px; padding:24px; max-width:420px; width:100%;
-  box-shadow:0 12px 40px rgba(0,0,0,.25);
+.stat-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:20px 22px;
+  position:relative;
+  overflow:hidden;
 }
-.modal-box h3{ font-family:var(--serif); margin-top:0; }
+.stat-card .label{ font-size:12.5px; color:var(--text-dim); margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+.stat-card .value{
+  font-family:var(--font-mono);
+  font-size:26px;
+  font-weight:500;
+  letter-spacing:-0.01em;
+}
+.stat-card .sub{ margin-top:8px; font-size:12px; color:var(--text-dim); }
+.stat-card .sub.up{ color:var(--positive); }
+.stat-card .sub.down{ color:var(--negative); }
+.stat-card.accented::before{
+  content:"";
+  position:absolute; top:0; left:0; right:0; height:3px;
+  background:linear-gradient(90deg,var(--gold-500),var(--gold-400));
+}
 
-/* ---- toast (N) ---- */
-.toast-stack{ position:fixed; bottom:20px; right:20px; z-index:400; display:flex; flex-direction:column; gap:8px; }
+/* panels */
+.panel{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:24px;
+  margin-bottom:24px;
+}
+.panel-head{
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:18px; gap:12px; flex-wrap:wrap;
+}
+.panel-head h2{
+  font-family:var(--font-display);
+  font-size:19px; font-weight:600; margin:0;
+}
+.panel-head p{ margin:4px 0 0; font-size:12.5px; color:var(--text-dim); }
+
+.two-col{ display:grid; grid-template-columns:1.3fr 1fr; gap:24px; align-items:start; }
+@media (max-width: 900px){ .two-col{ grid-template-columns:1fr; } }
+
+/* forms */
+.form-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; }
+label.field{ display:flex; flex-direction:column; gap:6px; font-size:12.5px; color:var(--text-dim); }
+input, select{
+  font-family:var(--font-body);
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:9px 11px;
+  border-radius:var(--radius-sm);
+  font-size:13.5px;
+  width:100%;
+}
+input:focus, select:focus{ border-color:var(--accent); }
+input[type="checkbox"]{ width:auto; accent-color:var(--accent); }
+.checkbox-field{ flex-direction:row; align-items:center; gap:8px; }
+
+/* table */
+table.ledger{ width:100%; border-collapse:collapse; font-size:13.5px; }
+table.ledger th{
+  text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.05em;
+  color:var(--text-dim); font-weight:600;
+  padding:8px 10px; border-bottom:1px solid var(--border);
+}
+table.ledger td{ padding:10px 10px; border-bottom:1px solid var(--border); vertical-align:middle; }
+table.ledger tr:last-child td{ border-bottom:none; }
+table.ledger tr:hover td{ background:var(--surface-2); }
+.cat-pill{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:3px 9px; border-radius:20px;
+  font-size:11.5px; font-weight:600;
+  border:1px solid var(--border);
+}
+.cat-pill .dot{ width:7px; height:7px; border-radius:50%; }
+.amount{ font-family:var(--font-mono); }
+.amount.neg{ color:var(--negative); }
+.amount.pos{ color:var(--positive); }
+.row-actions{ display:flex; gap:6px; justify-content:flex-end; }
+.icon-btn{
+  background:none; border:none; color:var(--text-dim); cursor:pointer; padding:4px 6px; border-radius:4px; font-size:13px;
+}
+.icon-btn:hover{ color:var(--negative); background:var(--surface-3); }
+
+/* budgets */
+.budget-row{ margin-bottom:16px; }
+.budget-row:last-child{ margin-bottom:0; }
+.budget-row .meta{ display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:6px; }
+.budget-row .meta .name{ font-weight:600; }
+.budget-row .meta .figures{ color:var(--text-dim); font-family:var(--font-mono); font-size:12px; }
+.bar-track{ height:8px; border-radius:6px; background:var(--surface-2); overflow:hidden; }
+.bar-fill{ height:100%; border-radius:6px; transition:width .4s ease; }
+
+/* chart canvases */
+.chart-wrap{ position:relative; height:260px; }
+.chart-wrap.sm{ height:200px; }
+
+/* empty state */
+.empty-state{
+  text-align:center; padding:40px 20px; color:var(--text-dim);
+}
+.empty-state .glyph{ font-size:30px; margin-bottom:10px; }
+.empty-state p{ margin:0; font-size:13.5px; }
+
+/* tags/badges for risk levels */
+.badge{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:4px 10px; border-radius:20px; font-size:11.5px; font-weight:700;
+  letter-spacing:0.02em;
+}
+.badge.conservative{ background:rgba(111,162,135,0.15); color:var(--positive); }
+.badge.balanced{ background:rgba(201,162,75,0.15); color:var(--accent-strong); }
+.badge.aggressive{ background:rgba(193,88,59,0.15); color:var(--negative); }
+
+/* allocation bars (investment) */
+.alloc-list{ display:flex; flex-direction:column; gap:14px; }
+.alloc-item .top{ display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; }
+.alloc-item .top .name{ font-weight:600; display:flex; align-items:center; gap:8px; }
+.alloc-item .top .figs{ font-family:var(--font-mono); color:var(--text-dim); }
+.alloc-item .desc{ font-size:12px; color:var(--text-dim); margin-top:5px; line-height:1.5; }
+
+.callout{
+  border:1px solid var(--border);
+  border-left:3px solid var(--accent);
+  background:var(--surface-2);
+  border-radius:var(--radius-sm);
+  padding:14px 16px;
+  font-size:12.8px;
+  color:var(--text-dim);
+  line-height:1.6;
+}
+.callout strong{ color:var(--text); }
+
+/* idea cards for making money */
+.idea-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; }
+.idea-card{
+  border:1px solid var(--border);
+  background:var(--surface-2);
+  border-radius:var(--radius-md);
+  padding:16px 18px;
+}
+.idea-card .glyph{ font-size:20px; margin-bottom:8px; display:block; }
+.idea-card h4{ margin:0 0 6px; font-size:14px; font-family:var(--font-display); font-weight:600; }
+.idea-card p{ margin:0; font-size:12.3px; color:var(--text-dim); line-height:1.55; }
+.idea-card .effort{ margin-top:10px; font-size:11px; color:var(--accent-strong); font-weight:600; }
+
+/* settings */
+.settings-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; }
+
+/* toast */
 .toast{
-  background:var(--ink); color:var(--paper); padding:.7em 1.1em; border-radius:6px; font-size:.85rem;
-  box-shadow:0 6px 20px rgba(0,0,0,.25); opacity:0; transform:translateY(8px); transition:all .25s ease;
+  position:fixed; bottom:22px; right:22px;
+  background:var(--ink-900); color:var(--gold-100);
+  border:1px solid var(--gold-500);
+  padding:12px 18px; border-radius:var(--radius-sm);
+  font-size:13px; box-shadow:var(--shadow);
+  z-index:999;
+  animation:toastIn .25s ease;
 }
-.toast.show{ opacity:1; transform:none; }
-
-/* ---- progress (P) ---- */
-.scroll-progress{ position:fixed; top:0; left:0; height:3px; background:var(--ochre); z-index:500; width:0%; }
-.bar-track{ background:var(--paper-2); border-radius:20px; height:10px; overflow:hidden; border:1px solid var(--rule); }
-.bar-fill{ background:var(--teal); height:100%; width:0%; transition:width .3s ease; }
-
-/* ---- tabs (T) ---- */
-.tabs-head{ display:flex; gap:4px; border-bottom:1px solid var(--rule); margin-bottom:14px; }
-.tabs-head button{
-  background:none; border:none; padding:.6em 1em; font-size:.88rem; color:var(--ink-soft); border-bottom:2px solid transparent;
-}
-.tabs-head button[aria-selected="true"]{ color:var(--ink); border-color:var(--ochre); font-weight:600; }
-
-/* ---- search (S) highlight ---- */
-mark{ background:var(--ochre); color:#fff; border-radius:2px; padding:0 1px; }
-
-/* ---- misc canvases ---- */
-canvas{ display:block; width:100%; border-radius:6px; background:var(--paper); }
-.canvas-box{ border:1px solid var(--rule); border-radius:6px; overflow:hidden; }
-
-/* ---- zoom (Z) ---- */
-.zoom-frame{
-  width:220px; height:160px; border:1px solid var(--rule); border-radius:6px; overflow:hidden;
-  cursor:zoom-in; background-repeat:no-repeat; background-size:220px 160px; margin:0 auto;
+[data-theme="light"] .toast{ background:var(--ink-900); color:var(--gold-100); }
+@keyframes toastIn{
+  from{ opacity:0; transform:translateY(8px); }
+  to{ opacity:1; transform:translateY(0); }
 }
 
-/* ---- footer ---- */
-footer{ padding:40px 24px 80px; text-align:center; color:var(--ink-soft); font-size:.85rem; }
-footer code{ display:block; margin-top:10px; max-width:600px; margin-inline:auto; text-align:left; white-space:pre-wrap; }
+.slider-row{ display:flex; align-items:center; gap:12px; }
+input[type="range"]{ accent-color:var(--accent); flex:1; }
 
-@media (max-width:560px){
-  .entry-head{ gap:12px; }
-  .dropcap{ font-size:2rem; }
+.footer-note{
+  margin-top:36px; padding-top:18px; border-top:1px solid var(--border);
+  font-size:11.5px; color:var(--text-dim); line-height:1.6;
 }
+
+.tab-pills{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; }
+.tab-pill{
+  padding:7px 14px; border-radius:20px; font-size:12.5px; font-weight:600;
+  border:1px solid var(--border); background:var(--surface-2); color:var(--text-dim); cursor:pointer;
+}
+.tab-pill.active{ background:var(--accent); border-color:var(--accent); color:#20170a; }
 </style>
 </head>
-<body>
+<body data-theme="dark">
+<div id="root"></div>
 
-<a class="skip-link" href="#main">Skip to entries</a>
-<div class="scroll-progress" id="scrollProgress"></div>
-<div class="toast-stack" id="toastStack" aria-live="polite"></div>
+<script type="text/babel" data-presets="react,env">
+const { useState, useEffect, useMemo, useRef, useCallback } = React;
 
-<!-- ============================================================
-     COVER
-     ============================================================ -->
-<header class="cover">
-  <div class="wrap">
-    <p class="cover-eyebrow">a single html file · twenty-six entries · no dependencies</p>
-    <h1>A → Z of the <em>Interactive</em> Web</h1>
-    <p class="lede">A field guide, catalogued alphabetically: one working specimen of browser behaviour for every letter, from Animate to Zoom.</p>
-    <div class="cover-actions">
-      <a class="btn primary" href="#entry-a">Begin at A ↓</a>
-      <button class="btn" id="themeToggle" aria-pressed="false" aria-label="Toggle dark mode">
-        <span class="theme-toggle" aria-hidden="true"></span> <span id="themeLabel">Light mode</span>
-      </button>
+/* =========================================================
+   CONSTANTS
+   ========================================================= */
+const CATEGORIES = [
+  { id: "housing",       label: "Housing & Rent",   color: "#c9a24b" },
+  { id: "food",          label: "Food & Groceries", color: "#6fa287" },
+  { id: "transport",     label: "Transport",        color: "#5b8fbf" },
+  { id: "utilities",     label: "Utilities",        color: "#a58bd6" },
+  { id: "health",        label: "Health",           color: "#c1583b" },
+  { id: "entertainment", label: "Entertainment",    color: "#d68fb0" },
+  { id: "shopping",      label: "Shopping",         color: "#e0a743" },
+  { id: "education",     label: "Education",        color: "#4fb0c6" },
+  { id: "debt",          label: "Debt/EMI",         color: "#b25c8a" },
+  { id: "other",         label: "Other",            color: "#8a94a6" },
+];
+const CAT_MAP = Object.fromEntries(CATEGORIES.map(c => [c.id, c]));
+
+const CURRENCIES = {
+  INR: { symbol: "₹", locale: "en-IN" },
+  USD: { symbol: "$", locale: "en-US" },
+  EUR: { symbol: "€", locale: "de-DE" },
+  GBP: { symbol: "£", locale: "en-GB" },
+};
+
+const STORAGE_KEY = "ledgerCompass.v1";
+
+const MONTH_FMT = (ym) => {
+  const [y, m] = ym.split("-").map(Number);
+  return new Date(y, m - 1, 1).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+};
+const todayYM = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+};
+const shiftYM = (ym, delta) => {
+  const [y, m] = ym.split("-").map(Number);
+  const d = new Date(y, m - 1 + delta, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+};
+const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+
+/* =========================================================
+   PERSISTENCE
+   ========================================================= */
+const DEFAULT_STATE = {
+  incomes: [],
+  expenses: [],
+  budgets: {},
+  settings: {
+    theme: "dark",
+    currency: "INR",
+    age: 28,
+    riskProfile: "balanced",
+    hasEmergencyFund: false,
+    emergencyFundMonths: 0,
+    dependents: 0,
+  },
+};
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return structuredCloneSafe(DEFAULT_STATE);
+    const parsed = JSON.parse(raw);
+    return { ...structuredCloneSafe(DEFAULT_STATE), ...parsed, settings: { ...DEFAULT_STATE.settings, ...(parsed.settings || {}) } };
+  } catch (e) {
+    console.warn("Could not read saved data, starting fresh.", e);
+    return structuredCloneSafe(DEFAULT_STATE);
+  }
+}
+function structuredCloneSafe(obj) { return JSON.parse(JSON.stringify(obj)); }
+function saveState(state) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  catch (e) { console.warn("Could not save data — storage may be full or blocked.", e); }
+}
+
+/* =========================================================
+   FORMATTERS
+   ========================================================= */
+function useFormatter(currencyCode) {
+  return useMemo(() => {
+    const cfg = CURRENCIES[currencyCode] || CURRENCIES.INR;
+    const nf = new Intl.NumberFormat(cfg.locale, { maximumFractionDigits: 0 });
+    return {
+      symbol: cfg.symbol,
+      fmt: (n) => `${cfg.symbol}${nf.format(Math.round(n || 0))}`,
+      fmtSigned: (n) => `${n < 0 ? "−" : "+"}${cfg.symbol}${nf.format(Math.abs(Math.round(n || 0)))}`,
+    };
+  }, [currencyCode]);
+}
+
+/* =========================================================
+   INVESTMENT / ALLOCATION ENGINE
+   Purely educational heuristics — not personalized financial
+   advice. Based on widely-cited rules of thumb:
+     - Emergency fund before investing (3–6 months expenses)
+     - Equity allocation ≈ (100 − age), nudged by risk profile
+     - Remainder split across debt/fixed-income, gold, retirement
+   ========================================================= */
+function buildAllocationPlan({ monthlySavings, age, riskProfile, hasEmergencyFund, emergencyFundMonths, monthlyExpenses, dependents }) {
+  if (monthlySavings <= 0) {
+    return { stage: "no-surplus", buckets: [] };
+  }
+
+  // Stage 1: emergency fund not yet adequate
+  const targetMonths = dependents > 0 ? 6 : 4;
+  if (!hasEmergencyFund || emergencyFundMonths < targetMonths) {
+    const remainingMonths = Math.max(targetMonths - (emergencyFundMonths || 0), 1);
+    const emergencyPortion = Math.min(monthlySavings, monthlyExpenses > 0 ? monthlyExpenses * 0.6 : monthlySavings * 0.6);
+    const rest = monthlySavings - emergencyPortion;
+    const buckets = [
+      {
+        name: "Emergency fund",
+        pct: Math.round((emergencyPortion / monthlySavings) * 100),
+        amount: emergencyPortion,
+        desc: `Keep building toward ${targetMonths} months of expenses in a liquid, easily-accessible account (e.g. a high-interest savings account or liquid fund) before taking on market risk. You still have about ${remainingMonths} month(s) of buffer to build.`,
+        color: "#6fa287",
+      },
+    ];
+    if (rest > 0) {
+      buckets.push({
+        name: "Low-risk parking (short-term FD / liquid fund)",
+        pct: Math.round((rest / monthlySavings) * 100),
+        amount: rest,
+        desc: "While the emergency fund is incomplete, keep any extra surplus somewhere low-volatility rather than in equities.",
+        color: "#5b8fbf",
+      });
+    }
+    return { stage: "building-emergency-fund", buckets };
+  }
+
+  // Stage 2: emergency fund in place — allocate the rest
+  let equityBase = 100 - age; // classic rule of thumb
+  const riskAdj = { conservative: -15, balanced: 0, aggressive: 15 }[riskProfile] ?? 0;
+  let equityPct = Math.min(85, Math.max(15, equityBase + riskAdj));
+  let debtPct = Math.min(70, Math.max(10, 100 - equityPct - 15));
+  let goldPct = 10;
+  let retirementPct = 100 - equityPct - debtPct - goldPct;
+  if (retirementPct < 5) { retirementPct = 5; debtPct = 100 - equityPct - goldPct - retirementPct; }
+
+  const total = equityPct + debtPct + goldPct + retirementPct;
+  const norm = (v) => Math.round((v / total) * 100);
+  equityPct = norm(equityPct); debtPct = norm(debtPct); goldPct = norm(goldPct);
+  retirementPct = 100 - equityPct - debtPct - goldPct;
+
+  const buckets = [
+    {
+      name: "Equity / index funds",
+      pct: equityPct,
+      amount: monthlySavings * (equityPct / 100),
+      desc: "Broad-market index funds or diversified equity mutual funds via a monthly SIP, for long-term growth. Higher volatility, longer horizon needed (5+ years ideally).",
+      color: "#c9a24b",
+    },
+    {
+      name: "Debt / fixed income",
+      pct: debtPct,
+      amount: monthlySavings * (debtPct / 100),
+      desc: "Bonds, debt mutual funds, or fixed deposits for stability and to balance out equity swings.",
+      color: "#5b8fbf",
+    },
+    {
+      name: "Gold / commodities",
+      pct: goldPct,
+      amount: monthlySavings * (goldPct / 100),
+      desc: "A small allocation (gold ETF or sovereign gold bonds) as a hedge against inflation and market shocks.",
+      color: "#d68fb0",
+    },
+    {
+      name: "Retirement accounts",
+      pct: retirementPct,
+      amount: monthlySavings * (retirementPct / 100),
+      desc: "Tax-advantaged retirement vehicles (e.g. EPF/PPF/NPS, 401(k)/IRA, or your country's equivalent) — often worth maxing employer-matched contributions first.",
+      color: "#4fb0c6",
+    },
+  ].filter(b => b.pct > 0);
+
+  return { stage: "invest", buckets, equityPct, riskAdj };
+}
+
+const MONEY_IDEAS = [
+  { glyph: "🧩", title: "Freelance your existing skill", body: "Writing, design, code, bookkeeping, tutoring — platforms like Upwork or local networks let you sell hours you already have before you invest in learning something new.", effort: "Low setup · fast start" },
+  { glyph: "📚", title: "Upskill toward a raise", body: "A certification or new tool proficiency in your current field is often the highest-ROI move — a 10–15% raise compounds every year after, unlike most one-off gigs.", effort: "Medium effort · high leverage" },
+  { glyph: "🗂️", title: "Sell what you're not using", body: "Unused electronics, clothes, books, or furniture convert idle stuff into an immediate emergency-fund top-up with zero ongoing effort.", effort: "One-time · quick cash" },
+  { glyph: "🏠", title: "Rent out spare capacity", body: "A spare room, parking spot, or storage space can produce steady passive income if your situation allows it.", effort: "Low effort · recurring" },
+  { glyph: "🛠️", title: "Productize a skill", body: "Templates, presets, a small course, or a niche newsletter can turn one-time work into something you sell repeatedly.", effort: "High upfront · scales later" },
+  { glyph: "🤝", title: "Negotiate recurring costs", body: "Calling to renegotiate insurance, subscriptions, or your rent/rate renewal is effectively a raise — it's money saved every single month.", effort: "Low effort · immediate" },
+];
+
+/* =========================================================
+   SMALL UI PRIMITIVES
+   ========================================================= */
+function Icon({ children }) { return <span className="icon" aria-hidden="true">{children}</span>; }
+
+function StatCard({ label, value, sub, subDirection, accented, icon }) {
+  return (
+    <div className={`stat-card${accented ? " accented" : ""}`}>
+      <div className="label"><Icon>{icon}</Icon>{label}</div>
+      <div className="value">{value}</div>
+      {sub && <div className={`sub${subDirection ? " " + subDirection : ""}`}>{sub}</div>}
     </div>
-  </div>
-</header>
+  );
+}
 
-<!-- ============================================================
-     STICKY A–Z INDEX
-     ============================================================ -->
-<nav class="index-nav" aria-label="Jump to entry">
-  <div class="wrap">
-    <ul class="index-list" id="indexList"></ul>
-  </div>
-</nav>
+function CatPill({ catId }) {
+  const cat = CAT_MAP[catId] || CAT_MAP.other;
+  return (
+    <span className="cat-pill" style={{ color: cat.color, borderColor: cat.color + "55" }}>
+      <span className="dot" style={{ background: cat.color }}></span>{cat.label}
+    </span>
+  );
+}
 
-<main id="main">
+function Toast({ message, onDone }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 2200);
+    return () => clearTimeout(t);
+  }, [message]);
+  if (!message) return null;
+  return <div className="toast">{message}</div>;
+}
 
-  <!-- A — ANIMATE -->
-  <section class="entry" id="entry-a">
-    <div class="entry-head">
-      <span class="dropcap" aria-hidden="true">A</span>
-      <div>
-        <h2 class="headword">Animate <span class="phon">/ˈæn.ɪ.meɪt/</span></h2>
-        <p class="pos">interactive · verb</p>
+/* =========================================================
+   CHART COMPONENTS (thin Chart.js wrappers)
+   ========================================================= */
+function DoughnutChart({ data, labels, colors, formatter }) {
+  const ref = useRef(null);
+  const chartRef = useRef(null);
+
+  useEffect(() => {
+    if (!ref.current) return;
+    if (chartRef.current) chartRef.current.destroy();
+    const textColor = getComputedStyle(document.body).getPropertyValue("--text").trim() || "#eee8d8";
+    chartRef.current = new Chart(ref.current, {
+      type: "doughnut",
+      data: {
+        labels,
+        datasets: [{ data, backgroundColor: colors, borderWidth: 2, borderColor: getComputedStyle(document.body).getPropertyValue("--surface").trim() }],
+      },
+      options: {
+        maintainAspectRatio: false,
+        cutout: "62%",
+        plugins: {
+          legend: { position: "bottom", labels: { color: textColor, boxWidth: 10, font: { size: 11 }, padding: 12 } },
+          tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${formatter.fmt(ctx.raw)}` } },
+        },
+      },
+    });
+    return () => { if (chartRef.current) chartRef.current.destroy(); };
+  }, [JSON.stringify(data), JSON.stringify(labels), document.body.getAttribute("data-theme")]);
+
+  return <div className="chart-wrap"><canvas ref={ref}></canvas></div>;
+}
+
+function TrendChart({ months, income, expense, formatter }) {
+  const ref = useRef(null);
+  const chartRef = useRef(null);
+
+  useEffect(() => {
+    if (!ref.current) return;
+    if (chartRef.current) chartRef.current.destroy();
+    const textColor = getComputedStyle(document.body).getPropertyValue("--text-dim").trim() || "#9fa8bd";
+    const gridColor = getComputedStyle(document.body).getPropertyValue("--border").trim() || "rgba(255,255,255,0.08)";
+    chartRef.current = new Chart(ref.current, {
+      type: "bar",
+      data: {
+        labels: months.map(m => MONTH_FMT(m).split(" ")[0].slice(0, 3)),
+        datasets: [
+          { label: "Income", data: income, backgroundColor: "#6fa287", borderRadius: 4, maxBarThickness: 22 },
+          { label: "Expenses", data: expense, backgroundColor: "#c1583b", borderRadius: 4, maxBarThickness: 22 },
+        ],
+      },
+      options: {
+        maintainAspectRatio: false,
+        scales: {
+          x: { ticks: { color: textColor, font: { size: 11 } }, grid: { display: false } },
+          y: { ticks: { color: textColor, font: { size: 10 }, callback: (v) => formatter.symbol + v }, grid: { color: gridColor } },
+        },
+        plugins: {
+          legend: { position: "bottom", labels: { color: textColor, boxWidth: 10, font: { size: 11 } } },
+          tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${formatter.fmt(ctx.raw)}` } },
+        },
+      },
+    });
+    return () => { if (chartRef.current) chartRef.current.destroy(); };
+  }, [JSON.stringify(months), JSON.stringify(income), JSON.stringify(expense), document.body.getAttribute("data-theme")]);
+
+  return <div className="chart-wrap"><canvas ref={ref}></canvas></div>;
+}
+
+/* =========================================================
+   PAGE: OVERVIEW
+   ========================================================= */
+function OverviewPage({ state, ym, fmt }) {
+  const monthIncomes = state.incomes.filter(i => i.month === ym);
+  const monthExpenses = state.expenses.filter(e => e.month === ym);
+  const totalIncome = monthIncomes.reduce((s, i) => s + Number(i.amount || 0), 0);
+  const totalExpense = monthExpenses.reduce((s, e) => s + Number(e.amount || 0), 0);
+  const savings = totalIncome - totalExpense;
+  const savingsRate = totalIncome > 0 ? (savings / totalIncome) * 100 : 0;
+
+  const prevYM = shiftYM(ym, -1);
+  const prevExpense = state.expenses.filter(e => e.month === prevYM).reduce((s, e) => s + Number(e.amount || 0), 0);
+  const expenseDelta = prevExpense > 0 ? ((totalExpense - prevExpense) / prevExpense) * 100 : null;
+
+  const byCategory = useMemo(() => {
+    const map = {};
+    monthExpenses.forEach(e => { map[e.category] = (map[e.category] || 0) + Number(e.amount || 0); });
+    return Object.entries(map).sort((a, b) => b[1] - a[1]);
+  }, [monthExpenses]);
+
+  const last6 = useMemo(() => {
+    const arr = [];
+    for (let i = 5; i >= 0; i--) arr.push(shiftYM(ym, -i));
+    return arr;
+  }, [ym]);
+  const incomeSeries = last6.map(m => state.incomes.filter(i => i.month === m).reduce((s, i) => s + Number(i.amount || 0), 0));
+  const expenseSeries = last6.map(m => state.expenses.filter(e => e.month === m).reduce((s, e) => s + Number(e.amount || 0), 0));
+
+  return (
+    <React.Fragment>
+      <div className="stat-grid">
+        <StatCard label="Income this month" icon="↗" value={fmt.fmt(totalIncome)} />
+        <StatCard label="Spent this month" icon="↘" value={fmt.fmt(totalExpense)}
+          sub={expenseDelta !== null ? `${expenseDelta >= 0 ? "+" : ""}${expenseDelta.toFixed(1)}% vs last month` : null}
+          subDirection={expenseDelta === null ? null : (expenseDelta > 0 ? "down" : "up")} />
+        <StatCard label="Saved this month" icon="✓" value={fmt.fmt(savings)}
+          sub={totalIncome > 0 ? `${savingsRate.toFixed(1)}% savings rate` : "Add income to see your rate"}
+          subDirection={savings >= 0 ? "up" : "down"} accented />
+        <StatCard label="Categories tracked" icon="▤" value={byCategory.length}
+          sub={byCategory[0] ? `Top: ${CAT_MAP[byCategory[0][0]]?.label || byCategory[0][0]}` : "No expenses yet"} />
       </div>
-    </div>
-    <p class="definition">To set a still shape in motion at the moment someone asks for it, rather than the moment the page loads.</p>
-    <div class="demo">
-      <p class="hint">Click the mark. Each press restarts the animation from zero.</p>
-      <div class="row">
-        <svg id="animShape" width="70" height="70" viewBox="0 0 70 70">
-          <rect x="10" y="10" width="50" height="50" rx="10" fill="var(--ochre)"></rect>
-        </svg>
-        <button class="btn" id="animBtn">Set in motion</button>
-      </div>
-    </div>
-  </section>
 
-  <!-- B — BACKGROUND -->
-  <section class="entry" id="entry-b">
-    <div class="entry-head">
-      <span class="dropcap" aria-hidden="true">B</span>
-      <div>
-        <h2 class="headword">Background <span class="phon">/ˈbæk.graʊnd/</span></h2>
-        <p class="pos">interactive · noun</p>
-      </div>
-    </div>
-    <p class="definition">A field of small points, quietly connecting to whichever ones are nearest, and to your cursor when it comes close.</p>
-    <div class="demo">
-      <p class="hint">Move your mouse over the panel.</p>
-      <div class="canvas-box"><canvas id="bgCanvas" height="180"></canvas></div>
-    </div>
-  </section>
+      <div className="two-col">
+        <div className="panel">
+          <div className="panel-head">
+            <div>
+              <h2>Six-month trend</h2>
+              <p>Income vs. expenses, so you can see the pattern rather than one month in isolation.</p>
+            </div>
+          </div>
+          <TrendChart months={last6} income={incomeSeries} expense={expenseSeries} formatter={fmt} />
+        </div>
 
-  <!-- C — CUSTOMIZE -->
-  <section class="entry" id="entry-c">
-    <div class="entry-head">
-      <span class="dropcap" aria-hidden="true">C</span>
-      <div>
-        <h2 class="headword">Customize <span class="phon">/ˈkʌs.tə.maɪz/</span></h2>
-        <p class="pos">interactive · verb</p>
-      </div>
-    </div>
-    <p class="definition">To let the reader pick the one colour that speaks for the whole page, and watch every accent obey it at once.</p>
-    <div class="demo">
-      <div class="row">
-        <label class="field">Accent colour
-          <input type="color" id="accentPicker" value="#c1811f">
-        </label>
-        <button class="btn small" id="accentReset">Reset</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- D — DRAG -->
-  <section class="entry" id="entry-d">
-    <div class="entry-head">
-      <span class="dropcap" aria-hidden="true">D</span>
-      <div>
-        <h2 class="headword">Drag <span class="phon">/dræɡ/</span></h2>
-        <p class="pos">interactive · verb</p>
-      </div>
-    </div>
-    <p class="definition">To pick a line out of its place and set it down somewhere truer, using nothing but the pointer.</p>
-    <div class="demo">
-      <p class="hint">Reorder the specimens by dragging them.</p>
-      <ul class="todo-list" id="dragList">
-        <li draggable="true"><span>🦋 Monarch butterfly</span></li>
-        <li draggable="true"><span>🪨 River stone</span></li>
-        <li draggable="true"><span>🍄 Fungus, unidentified</span></li>
-        <li draggable="true"><span>🐚 Spiral shell</span></li>
-      </ul>
-    </div>
-  </section>
-
-  <!-- E — EASTER EGG -->
-  <section class="entry" id="entry-e">
-    <div class="entry-head">
-      <span class="dropcap" aria-hidden="true">E</span>
-      <div>
-        <h2 class="headword">Easter egg <span class="phon">/ˈiː.stər ɛɡ/</span></h2>
-        <p class="pos">interactive · noun</p>
-      </div>
-    </div>
-    <p class="definition">A response hidden behind a specific, unlikely sequence of keys — reachable only by those who already know the code.</p>
-    <div class="demo">
-      <p class="hint">Try the sequence: ↑ ↑ ↓ ↓ ← → ← → B A</p>
-      <p id="konamiStatus" style="font-family:var(--mono); font-size:.85rem; color:var(--ink-soft);">Listening…</p>
-    </div>
-  </section>
-
-  <!-- F — FORM -->
-  <section class="entry" id="entry-f">
-    <div class="entry-head">
-      <span class="dropcap" aria-hidden="true">F</span>
-      <div>
-        <h2 class="headword">Form <span class="phon">/fɔːrm/</span></h2>
-        <p class="pos">interactive · noun</p>
-      </div>
-    </div>
-    <p class="definition">A pair of fields that check their own work — an address for shape, a password for strength — before either is accepted.</p>
-    <div class="demo">
-      <div class="row" style="flex-direction:column; align-items:stretch;">
-        <label class="field">Email
-          <input type="text" id="fEmail" placeholder="name@example.com" autocomplete="off">
-          <span class="error-text" id="fEmailErr"></span>
-        </label>
-        <label class="field">Password
-          <input type="password" id="fPass" placeholder="Choose a password" autocomplete="off">
-          <span class="error-text" id="fPassErr"></span>
-        </label>
-        <div class="bar-track" style="height:6px;"><div class="bar-fill" id="fPassBar" style="background:var(--red);"></div></div>
-        <div>
-          <button class="btn primary small" id="fSubmit" type="button">Check form</button>
+        <div className="panel">
+          <div className="panel-head">
+            <div>
+              <h2>Where it went</h2>
+              <p>{MONTH_FMT(ym)}</p>
+            </div>
+          </div>
+          {byCategory.length === 0 ? (
+            <div className="empty-state">
+              <div className="glyph">🗒️</div>
+              <p>No expenses logged for this month yet.</p>
+            </div>
+          ) : (
+            <DoughnutChart
+              data={byCategory.map(([, v]) => v)}
+              labels={byCategory.map(([k]) => CAT_MAP[k]?.label || k)}
+              colors={byCategory.map(([k]) => CAT_MAP[k]?.color || "#8a94a6")}
+              formatter={fmt}
+            />
+          )}
         </div>
       </div>
-    </div>
-  </section>
+    </React.Fragment>
+  );
+}
 
-  <!-- G — GALLERY -->
-  <section class="entry" id="entry-g">
-    <div class="entry-head">
-      <span class="dropcap" aria-hidden="true">G</span>
-      <div>
-        <h2 class="headword">Gallery <span class="phon">/ˈɡæl.ər.i/</span></h2>
-        <p class="pos">interactive · noun</p>
-      </div>
-    </div>
-    <p class="definition">A row of plates, viewed one at a time, each announced quietly at the bottom of its own frame.</p>
-    <div class="demo">
-      <div class="gallery">
-        <button class="gallery-arrow prev" id="galPrev" aria-label="Previous">‹</button>
-        <div class="gallery-track" id="galTrack"></div>
-        <button class="gallery-arrow next" id="galNext" aria-label="Next">›</button>
-      </div>
-      <div class="gallery-dots" id="galDots"></div>
-    </div>
-  </section>
+/* =========================================================
+   PAGE: EXPENSES
+   ========================================================= */
+function ExpensesPage({ state, setState, ym, fmt, notify }) {
+  const [form, setForm] = useState({ name: "", amount: "", category: "food", date: `${ym}-01`, recurring: false });
 
-  <!-- H — HOVER -->
-  <section class="entry" id="entry-h">
-    <div class="entry-head">
-      <span class="dropcap" aria-hidden="true">H</span>
-      <div>
-        <h2 class="headword">Hover <span class="phon">/ˈhʌv.ər/</span></h2>
-        <p class="pos">interactive · verb</p>
-      </div>
-    </div>
-    <p class="definition">To linger over a label just long enough that it explains itself, and to vanish the instant you look away.</p>
-    <div class="demo">
-      <span class="chip" data-tooltip="Family: Rosaceae">Wild rose</span>
-      <span class="chip" data-tooltip="Nocturnal, echolocating">Bat</span>
-      <span class="chip" data-tooltip="Forms in limestone caves">Stalactite</span>
-      <span class="chip" data-tooltip="A cursor position, remembered">Tooltip, itself</span>
-    </div>
-  </section>
+  useEffect(() => { setForm(f => ({ ...f, date: `${ym}-01` })); }, [ym]);
 
-  <!-- I — INTERSECT -->
-  <section class="entry" id="entry-i">
-    <div class="entry-head">
-      <span class="dropcap" aria-hidden="true">I</span>
-      <div>
-        <h2 class="headword">Intersect <span class="phon">/ˌɪn.tərˈsɛkt/</span></h2>
-        <p class="pos">interactive · verb</p>
-      </div>
-    </div>
-    <p class="definition">To notice, without being asked on every frame, the exact moment a card crosses into view — and only then, let it settle into place.</p>
-    <div class="demo">
-      <div class="card-grid">
-        <div class="spec-card reveal"><b>Granite</b>Igneous, coarse-grained</div>
-        <div class="spec-card reveal"><b>Quartz</b>Silicon dioxide, hexagonal</div>
-        <div class="spec-card reveal"><b>Slate</b>Metamorphic, fine layers</div>
-      </div>
-    </div>
-  </section>
+  const monthExpenses = state.expenses
+    .filter(e => e.month === ym)
+    .sort((a, b) => (b.date || "").localeCompare(a.date || ""));
 
-  <!-- J — JSON -->
-  <section class="entry" id="entry-j">
-    <div class="entry-head">
-      <span class="dropcap" aria-hidden="true">J</span>
-      <div>
-        <h2 class="headword">JSON <span class="phon">/ˈdʒeɪ.sɒn/</span></h2>
-        <p class="pos">interactive · noun</p>
-      </div>
-    </div>
-    <p class="definition">A small store of facts, kept as plain text, drawn from at random whenever the reader asks for one more.</p>
-    <div class="demo">
-      <blockquote id="jsonQuote" style="font-family:var(--serif); font-style:italic; margin:0 0 12px;">Press the button for a field note.</blockquote>
-      <button class="btn small" id="jsonBtn">Draw a note</button>
-    </div>
-  </section>
+  function addExpense(e) {
+    e.preventDefault();
+    if (!form.name.trim() || !form.amount || Number(form.amount) <= 0) {
+      notify("Give the expense a name and an amount above zero.");
+      return;
+    }
+    const entry = {
+      id: uid(),
+      name: form.name.trim(),
+      amount: Number(form.amount),
+      category: form.category,
+      date: form.date || `${ym}-01`,
+      month: (form.date || `${ym}-01`).slice(0, 7),
+      recurring: form.recurring,
+    };
+    setState(s => ({ ...s, expenses: [...s.expenses, entry] }));
+    setForm({ name: "", amount: "", category: form.category, date: form.date, recurring: false });
+    notify("Expense added.");
+  }
 
-  <!-- K — KEYBOARD -->
-  <section class="entry" id="entry-k">
-    <div class="entry-head">
-      <span class="dropcap" aria-hidden="true">K</span>
-      <div>
-        <h2 class="headword">Keyboard <span class="phon">/ˈkiː.bɔːrd/</span></h2>
-        <p class="pos">interactive · noun</p>
-      </div>
-    </div>
-    <p class="definition">A second way in, for hands that never leave the keys — every letter here a shortcut to its own entry.</p>
-    <div class="demo">
-      <p class="hint">Click into this panel and press any key.</p>
-      <div tabindex="0" id="keyPanel" style="border:1px dashed var(--rule); border-radius:6px; padding:16px; text-align:center; font-family:var(--mono);">
-        Last key: <strong id="keyOut">—</strong>
-      </div>
-    </div>
-  </section>
+  function removeExpense(id) {
+    setState(s => ({ ...s, expenses: s.expenses.filter(e => e.id !== id) }));
+  }
 
-  <!-- L — LOCAL STORAGE -->
-  <section class="entry" id="entry-l">
-    <div class="entry-head">
-      <span class="dropcap" aria-hidden="true">L</span>
-      <div>
-        <h2 class="headword">Local storage <span class="phon">/ˈloʊ.kəl ˈstɔːr.ɪdʒ/</span></h2>
-        <p class="pos">interactive · noun</p>
-      </div>
-    </div>
-    <p class="definition">A notebook kept in the browser itself — closed, reopened, and still holding exactly what was written in it.</p>
-    <div class="demo">
-      <div class="row">
-        <input type="text" id="todoInput" class="field" placeholder="Add a field task…" style="flex:1; padding:.5em .6em; border:1px solid var(--rule); border-radius:var(--radius); background:var(--paper); color:var(--ink);">
-        <button class="btn small" id="todoAdd">Add</button>
-      </div>
-      <ul class="todo-list" id="todoList"></ul>
-    </div>
-  </section>
+  function addRecurringToNextMonth(entry) {
+    const nextMonth = shiftYM(ym, 1);
+    const copy = { ...entry, id: uid(), month: nextMonth, date: `${nextMonth}-${entry.date.slice(8, 10) || "01"}` };
+    setState(s => ({ ...s, expenses: [...s.expenses, copy] }));
+    notify(`Copied "${entry.name}" into ${MONTH_FMT(nextMonth)}.`);
+  }
 
-  <!-- M — MODAL -->
-  <section class="entry" id="entry-m">
-    <div class="entry-head">
-      <span class="dropcap" aria-hidden="true">M</span>
-      <div>
-        <h2 class="headword">Modal <span class="phon">/ˈmoʊ.dəl/</span></h2>
-        <p class="pos">interactive · adjective</p>
+  return (
+    <React.Fragment>
+      <div className="panel">
+        <div className="panel-head">
+          <div>
+            <h2>Log an expense</h2>
+            <p>Everything you add here lands in {MONTH_FMT(ym)} unless you pick a different date.</p>
+          </div>
+        </div>
+        <form onSubmit={addExpense}>
+          <div className="form-grid">
+            <label className="field">Name
+              <input type="text" placeholder="e.g. Groceries" value={form.name}
+                onChange={e => setForm({ ...form, name: e.target.value })} />
+            </label>
+            <label className="field">Amount
+              <input type="number" min="0" step="0.01" placeholder="0.00" value={form.amount}
+                onChange={e => setForm({ ...form, amount: e.target.value })} />
+            </label>
+            <label className="field">Category
+              <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}>
+                {CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+              </select>
+            </label>
+            <label className="field">Date
+              <input type="date" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} />
+            </label>
+            <label className="field checkbox-field" style={{ justifyContent: "flex-end" }}>
+              <input type="checkbox" checked={form.recurring} onChange={e => setForm({ ...form, recurring: e.target.checked })} />
+              Recurring monthly
+            </label>
+          </div>
+          <div style={{ marginTop: 14 }}>
+            <button type="submit" className="btn btn-accent">+ Add expense</button>
+          </div>
+        </form>
       </div>
-    </div>
-    <p class="definition">A pane that steps in front of everything else, and asks to be dismissed before the page continues.</p>
-    <div class="demo">
-      <button class="btn" id="openModal">Open the specimen card</button>
-    </div>
-  </section>
-  <div class="modal-backdrop" id="modalBackdrop">
-    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-      <h3 id="modalTitle">Specimen 14 — Amber</h3>
-      <p style="font-family:var(--serif); color:var(--ink-soft);">Fossilised tree resin, sometimes holding an insect that landed forty million years too soon.</p>
-      <button class="btn primary small" id="closeModal">Close</button>
-    </div>
-  </div>
 
-  <!-- N — NOTIFY -->
-  <section class="entry" id="entry-n">
-    <div class="entry-head">
-      <span class="dropcap" aria-hidden="true">N</span>
-      <div>
-        <h2 class="headword">Notify <span class="phon">/ˈnoʊ.tɪ.faɪ/</span></h2>
-        <p class="pos">interactive · verb</p>
+      <div className="panel">
+        <div className="panel-head">
+          <div>
+            <h2>{MONTH_FMT(ym)}</h2>
+            <p>{monthExpenses.length} expense{monthExpenses.length === 1 ? "" : "s"} logged</p>
+          </div>
+        </div>
+        {monthExpenses.length === 0 ? (
+          <div className="empty-state">
+            <div className="glyph">🧾</div>
+            <p>Nothing logged for this month yet — add your first expense above.</p>
+          </div>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table className="ledger">
+              <thead>
+                <tr><th>Date</th><th>Name</th><th>Category</th><th style={{ textAlign: "right" }}>Amount</th><th></th></tr>
+              </thead>
+              <tbody>
+                {monthExpenses.map(e => (
+                  <tr key={e.id}>
+                    <td>{e.date}</td>
+                    <td>{e.name}{e.recurring && <span title="Recurring" style={{ marginLeft: 6, opacity: 0.6 }}>↻</span>}</td>
+                    <td><CatPill catId={e.category} /></td>
+                    <td style={{ textAlign: "right" }} className="amount neg">−{fmt.fmt(e.amount)}</td>
+                    <td>
+                      <div className="row-actions">
+                        {e.recurring && <button className="icon-btn" title="Copy to next month" onClick={() => addRecurringToNextMonth(e)}>⇥</button>}
+                        <button className="icon-btn" title="Delete" onClick={() => removeExpense(e.id)}>✕</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
-    </div>
-    <p class="definition">To say a small thing in the corner of the room, briefly, and then let it go.</p>
-    <div class="demo">
-      <div class="row">
-        <button class="btn small" data-toast="Entry logged." data-kind="ok">Log entry</button>
-        <button class="btn small" data-toast="Specimen unreadable." data-kind="warn">Trigger warning</button>
-      </div>
-    </div>
-  </section>
+    </React.Fragment>
+  );
+}
 
-  <!-- O — ONLINE -->
-  <section class="entry" id="entry-o">
-    <div class="entry-head">
-      <span class="dropcap" aria-hidden="true">O</span>
-      <div>
-        <h2 class="headword">Online <span class="phon">/ˈɒn.laɪn/</span></h2>
-        <p class="pos">interactive · adjective</p>
-      </div>
-    </div>
-    <p class="definition">A single fact the browser already knows about the room you're in — whether it is, right now, connected to anything at all.</p>
-    <div class="demo">
-      <p style="font-family:var(--mono);">Status: <strong id="onlineStatus">checking…</strong></p>
-      <p class="hint">Genuinely reflects your connection — try switching your device to airplane mode.</p>
-    </div>
-  </section>
+/* =========================================================
+   PAGE: INCOME & BUDGET
+   ========================================================= */
+function IncomeBudgetPage({ state, setState, ym, fmt, notify }) {
+  const [incomeForm, setIncomeForm] = useState({ name: "", amount: "" });
+  const monthIncomes = state.incomes.filter(i => i.month === ym);
+  const totalIncome = monthIncomes.reduce((s, i) => s + Number(i.amount || 0), 0);
 
-  <!-- P — PROGRESS -->
-  <section class="entry" id="entry-p">
-    <div class="entry-head">
-      <span class="dropcap" aria-hidden="true">P</span>
-      <div>
-        <h2 class="headword">Progress <span class="phon">/ˈprɒɡ.rɛs/</span></h2>
-        <p class="pos">interactive · noun</p>
-      </div>
-    </div>
-    <p class="definition">A line that fills at the pace of the work — one bar for the page you're reading, another for a task you set yourself.</p>
-    <div class="demo">
-      <p class="hint">The thin line at the very top of the page tracks your scroll. This one tracks clicks.</p>
-      <div class="bar-track"><div class="bar-fill" id="taskBar"></div></div>
-      <div class="row" style="margin-top:10px;">
-        <button class="btn small" id="taskStep">Log a step (+10%)</button>
-        <button class="btn small" id="taskReset">Reset</button>
-      </div>
-    </div>
-  </section>
+  function addIncome(e) {
+    e.preventDefault();
+    if (!incomeForm.name.trim() || !incomeForm.amount || Number(incomeForm.amount) <= 0) {
+      notify("Give the income source a name and an amount above zero.");
+      return;
+    }
+    setState(s => ({ ...s, incomes: [...s.incomes, { id: uid(), name: incomeForm.name.trim(), amount: Number(incomeForm.amount), month: ym }] }));
+    setIncomeForm({ name: "", amount: "" });
+    notify("Income added.");
+  }
+  function removeIncome(id) { setState(s => ({ ...s, incomes: s.incomes.filter(i => i.id !== id) })); }
 
-  <!-- Q — QUIZ -->
-  <section class="entry" id="entry-q">
-    <div class="entry-head">
-      <span class="dropcap" aria-hidden="true">Q</span>
-      <div>
-        <h2 class="headword">Quiz <span class="phon">/kwɪz/</span></h2>
-        <p class="pos">interactive · noun</p>
-      </div>
-    </div>
-    <p class="definition">Three short questions about this very page, scored the moment you answer.</p>
-    <div class="demo" id="quizBox"></div>
-  </section>
+  const monthExpensesByCategory = useMemo(() => {
+    const map = {};
+    state.expenses.filter(e => e.month === ym).forEach(e => { map[e.category] = (map[e.category] || 0) + Number(e.amount || 0); });
+    return map;
+  }, [state.expenses, ym]);
 
-  <!-- R — RANGE -->
-  <section class="entry" id="entry-r">
-    <div class="entry-head">
-      <span class="dropcap" aria-hidden="true">R</span>
-      <div>
-        <h2 class="headword">Range <span class="phon">/reɪndʒ/</span></h2>
-        <p class="pos">interactive · noun</p>
-      </div>
-    </div>
-    <p class="definition">A single slider standing in for a whole spectrum, redrawing the shape beside it as it moves.</p>
-    <div class="demo">
-      <div class="row">
-        <input type="range" id="rangeSlider" min="10" max="120" value="50" style="flex:1;">
-        <svg width="60" height="60" viewBox="0 0 120 120" style="flex-shrink:0;">
-          <circle id="rangeCircle" cx="60" cy="60" r="25" fill="var(--teal)"></circle>
-        </svg>
-      </div>
-    </div>
-  </section>
+  function setBudget(catId, value) {
+    setState(s => ({ ...s, budgets: { ...s.budgets, [catId]: Number(value) || 0 } }));
+  }
 
-  <!-- S — SEARCH -->
-  <section class="entry" id="entry-s">
-    <div class="entry-head">
-      <span class="dropcap" aria-hidden="true">S</span>
-      <div>
-        <h2 class="headword">Search <span class="phon">/sɜːrtʃ/</span></h2>
-        <p class="pos">interactive · verb</p>
-      </div>
-    </div>
-    <p class="definition">To narrow a long list down to the few lines that actually match, letter by letter as you type.</p>
-    <div class="demo">
-      <input type="text" id="searchInput" placeholder="Filter specimens…" style="width:100%; padding:.5em .6em; border:1px solid var(--rule); border-radius:var(--radius); background:var(--paper); color:var(--ink); margin-bottom:10px;">
-      <ul id="searchList" style="margin:0; padding-left:20px; font-family:var(--serif);"></ul>
-    </div>
-  </section>
+  return (
+    <React.Fragment>
+      <div className="two-col">
+        <div className="panel">
+          <div className="panel-head">
+            <div><h2>Income sources</h2><p>{MONTH_FMT(ym)} · total {fmt.fmt(totalIncome)}</p></div>
+          </div>
+          <form onSubmit={addIncome} className="form-grid" style={{ marginBottom: 16 }}>
+            <label className="field">Source
+              <input type="text" placeholder="e.g. Salary, freelance" value={incomeForm.name}
+                onChange={e => setIncomeForm({ ...incomeForm, name: e.target.value })} />
+            </label>
+            <label className="field">Amount
+              <input type="number" min="0" step="0.01" placeholder="0.00" value={incomeForm.amount}
+                onChange={e => setIncomeForm({ ...incomeForm, amount: e.target.value })} />
+            </label>
+            <div style={{ display: "flex", alignItems: "flex-end" }}>
+              <button type="submit" className="btn btn-accent" style={{ width: "100%" }}>+ Add</button>
+            </div>
+          </form>
+          {monthIncomes.length === 0 ? (
+            <div className="empty-state"><div className="glyph">💰</div><p>No income logged for this month yet.</p></div>
+          ) : (
+            <table className="ledger">
+              <tbody>
+                {monthIncomes.map(i => (
+                  <tr key={i.id}>
+                    <td>{i.name}</td>
+                    <td style={{ textAlign: "right" }} className="amount pos">+{fmt.fmt(i.amount)}</td>
+                    <td style={{ width: 30 }}><button className="icon-btn" onClick={() => removeIncome(i.id)}>✕</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
 
-  <!-- T — TABS -->
-  <section class="entry" id="entry-t">
-    <div class="entry-head">
-      <span class="dropcap" aria-hidden="true">T</span>
-      <div>
-        <h2 class="headword">Tabs <span class="phon">/tæbz/</span></h2>
-        <p class="pos">interactive · noun</p>
+        <div className="panel">
+          <div className="panel-head">
+            <div><h2>Category budgets</h2><p>Optional monthly caps — leave at 0 to skip a category.</p></div>
+          </div>
+          <div>
+            {CATEGORIES.map(c => {
+              const spent = monthExpensesByCategory[c.id] || 0;
+              const budget = state.budgets[c.id] || 0;
+              const pct = budget > 0 ? Math.min(100, (spent / budget) * 100) : 0;
+              const over = budget > 0 && spent > budget;
+              return (
+                <div className="budget-row" key={c.id}>
+                  <div className="meta">
+                    <span className="name" style={{ color: c.color }}>{c.label}</span>
+                    <span className="figures">{fmt.fmt(spent)}{budget > 0 ? ` / ${fmt.fmt(budget)}` : ""}</span>
+                  </div>
+                  <div className="bar-track">
+                    <div className="bar-fill" style={{ width: `${budget > 0 ? pct : 0}%`, background: over ? "var(--negative)" : c.color }}></div>
+                  </div>
+                  <input
+                    type="number" min="0" step="1" placeholder="Set budget"
+                    value={budget || ""}
+                    onChange={e => setBudget(c.id, e.target.value)}
+                    style={{ marginTop: 8, maxWidth: 160 }}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
-    </div>
-    <p class="definition">Three drawers sharing one frame, only one ever open at a time.</p>
-    <div class="demo">
-      <div class="tabs-head" role="tablist">
-        <button role="tab" aria-selected="true" data-tab="soil">Soil</button>
-        <button role="tab" aria-selected="false" data-tab="water">Water</button>
-        <button role="tab" aria-selected="false" data-tab="air">Air</button>
-      </div>
-      <div id="tabPanel" style="font-family:var(--serif); color:var(--ink-soft);"></div>
-    </div>
-  </section>
+    </React.Fragment>
+  );
+}
 
-  <!-- U — UNDO -->
-  <section class="entry" id="entry-u">
-    <div class="entry-head">
-      <span class="dropcap" aria-hidden="true">U</span>
-      <div>
-        <h2 class="headword">Undo <span class="phon">/ʌnˈduː/</span></h2>
-        <p class="pos">interactive · verb</p>
-      </div>
-    </div>
-    <p class="definition">To step backward through your own edits, one at a time, and forward again just as easily.</p>
-    <div class="demo">
-      <textarea id="undoArea" rows="3" style="width:100%;" placeholder="Type your field notes here…"></textarea>
-      <div class="row" style="margin-top:8px;">
-        <button class="btn small" id="undoBtn">↶ Undo</button>
-        <button class="btn small" id="redoBtn">↷ Redo</button>
-      </div>
-    </div>
-  </section>
+/* =========================================================
+   PAGE: INVEST
+   ========================================================= */
+function InvestPage({ state, setState, ym, fmt, notify }) {
+  const { settings } = state;
+  const monthIncome = state.incomes.filter(i => i.month === ym).reduce((s, i) => s + Number(i.amount || 0), 0);
+  const monthExpense = state.expenses.filter(e => e.month === ym).reduce((s, e) => s + Number(e.amount || 0), 0);
 
-  <!-- V — VOICE -->
-  <section class="entry" id="entry-v">
-    <div class="entry-head">
-      <span class="dropcap" aria-hidden="true">V</span>
-      <div>
-        <h2 class="headword">Voice <span class="phon">/vɔɪs/</span></h2>
-        <p class="pos">interactive · noun</p>
-      </div>
-    </div>
-    <p class="definition">The words on the page, read aloud by the browser itself, in whichever voice it has on hand.</p>
-    <div class="demo">
-      <textarea id="voiceText" rows="2" style="width:100%;">The specimen was catalogued at dawn, still damp with dew.</textarea>
-      <div class="row" style="margin-top:8px;">
-        <button class="btn small" id="voiceSpeak">🔊 Speak</button>
-        <button class="btn small" id="voiceStop">Stop</button>
-      </div>
-      <p class="hint" id="voiceHint"></p>
-    </div>
-  </section>
+  // Use trailing 3-month average where possible for a steadier picture
+  const trailing = [0, 1, 2].map(i => shiftYM(ym, -i));
+  const avgIncome = trailing.reduce((s, m) => s + state.incomes.filter(i => i.month === m).reduce((a, i) => a + Number(i.amount || 0), 0), 0) / 3;
+  const avgExpense = trailing.reduce((s, m) => s + state.expenses.filter(e => e.month === m).reduce((a, e) => a + Number(e.amount || 0), 0), 0) / 3;
+  const monthlySavings = Math.max(0, (avgIncome || monthIncome) - (avgExpense || monthExpense));
 
-  <!-- W — WEB SHARE / COPY -->
-  <section class="entry" id="entry-w">
-    <div class="entry-head">
-      <span class="dropcap" aria-hidden="true">W</span>
-      <div>
-        <h2 class="headword">Web share <span class="phon">/wɛb ʃɛr/</span></h2>
-        <p class="pos">interactive · verb</p>
-      </div>
-    </div>
-    <p class="definition">To hand this page's address to another app entirely — or, failing that, to simply place it on the clipboard.</p>
-    <div class="demo">
-      <div class="row">
-        <button class="btn small" id="shareBtn">Share this guide</button>
-        <button class="btn small" id="copyBtn">Copy link</button>
-      </div>
-    </div>
-  </section>
+  const plan = useMemo(() => buildAllocationPlan({
+    monthlySavings,
+    age: settings.age,
+    riskProfile: settings.riskProfile,
+    hasEmergencyFund: settings.hasEmergencyFund,
+    emergencyFundMonths: settings.emergencyFundMonths,
+    monthlyExpenses: avgExpense || monthExpense,
+    dependents: settings.dependents,
+  }), [monthlySavings, settings, avgExpense, monthExpense]);
 
-  <!-- X — XY DRAW -->
-  <section class="entry" id="entry-x">
-    <div class="entry-head">
-      <span class="dropcap" aria-hidden="true">X</span>
-      <div>
-        <h2 class="headword">XY plot <span class="phon">/ˌɛksˈwaɪ plɒt/</span></h2>
-        <p class="pos">interactive · noun</p>
+  function updateSetting(key, value) {
+    setState(s => ({ ...s, settings: { ...s.settings, [key]: value } }));
+  }
+
+  return (
+    <React.Fragment>
+      <div className="panel">
+        <div className="panel-head">
+          <div>
+            <h2>Your profile</h2>
+            <p>These inputs shape the suggestions below — nothing here is sent anywhere, it's stored on this device only.</p>
+          </div>
+        </div>
+        <div className="settings-grid">
+          <label className="field">Age
+            <input type="number" min="16" max="90" value={settings.age} onChange={e => updateSetting("age", Number(e.target.value) || 0)} />
+          </label>
+          <label className="field">Risk appetite
+            <select value={settings.riskProfile} onChange={e => updateSetting("riskProfile", e.target.value)}>
+              <option value="conservative">Conservative</option>
+              <option value="balanced">Balanced</option>
+              <option value="aggressive">Aggressive</option>
+            </select>
+          </label>
+          <label className="field">Dependents relying on your income
+            <input type="number" min="0" max="10" value={settings.dependents} onChange={e => updateSetting("dependents", Number(e.target.value) || 0)} />
+          </label>
+          <label className="field checkbox-field" style={{ alignSelf: "end" }}>
+            <input type="checkbox" checked={settings.hasEmergencyFund} onChange={e => updateSetting("hasEmergencyFund", e.target.checked)} />
+            I already have an emergency fund
+          </label>
+          {settings.hasEmergencyFund && (
+            <label className="field">Months of expenses it covers
+              <input type="number" min="0" max="24" value={settings.emergencyFundMonths} onChange={e => updateSetting("emergencyFundMonths", Number(e.target.value) || 0)} />
+            </label>
+          )}
+        </div>
       </div>
-    </div>
-    <p class="definition">A blank field that remembers every point your finger touches, until you wipe it clean.</p>
-    <div class="demo">
-      <div class="canvas-box"><canvas id="drawCanvas" height="180"></canvas></div>
-      <div class="row" style="margin-top:8px;">
-        <label class="field" style="flex-direction:row; align-items:center; gap:6px;">Ink
-          <input type="color" id="drawColor" value="#1c2321">
+
+      <div className="two-col">
+        <div className="panel">
+          <div className="panel-head">
+            <div>
+              <h2>Suggested monthly allocation</h2>
+              <p>Based on a ~3-month average surplus of {fmt.fmt(monthlySavings)}/month</p>
+            </div>
+            <span className={`badge ${settings.riskProfile}`}>{settings.riskProfile}</span>
+          </div>
+
+          {plan.stage === "no-surplus" ? (
+            <div className="empty-state">
+              <div className="glyph">⚖️</div>
+              <p>Your logged expenses meet or exceed your income right now, so there's no surplus to allocate yet. Trimming a recurring cost or adding income is the first move — see ideas below.</p>
+            </div>
+          ) : (
+            <div className="alloc-list">
+              {plan.buckets.map(b => (
+                <div className="alloc-item" key={b.name}>
+                  <div className="top">
+                    <span className="name"><span style={{ width: 9, height: 9, borderRadius: "50%", background: b.color || "var(--accent)", display: "inline-block" }}></span>{b.name}</span>
+                    <span className="figs">{b.pct}% · {fmt.fmt(b.amount)}</span>
+                  </div>
+                  <div className="bar-track"><div className="bar-fill" style={{ width: `${b.pct}%`, background: b.color || "var(--accent)" }}></div></div>
+                  <div className="desc">{b.desc}</div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="callout" style={{ marginTop: 18 }}>
+            <strong>This is educational, not personalized financial advice.</strong> The split above comes from common rules of thumb (like allocating roughly "100 minus your age" to equities), not from your full financial picture. Consider talking to a licensed financial advisor before making investment decisions, and never invest money you might need on short notice.
+          </div>
+        </div>
+
+        <div className="panel">
+          <div className="panel-head"><div><h2>How this was calculated</h2></div></div>
+          <div className="callout" style={{ marginBottom: 14 }}>
+            Average of your last 3 months' income and expenses (falling back to this month if history is short) gives a steadier "typical surplus" than a single month.
+          </div>
+          <table className="ledger">
+            <tbody>
+              <tr><td>Avg. monthly income</td><td style={{ textAlign: "right" }} className="amount pos">{fmt.fmt(avgIncome || monthIncome)}</td></tr>
+              <tr><td>Avg. monthly expenses</td><td style={{ textAlign: "right" }} className="amount neg">{fmt.fmt(avgExpense || monthExpense)}</td></tr>
+              <tr><td><strong>Typical monthly surplus</strong></td><td style={{ textAlign: "right" }} className="amount pos"><strong>{fmt.fmt(monthlySavings)}</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="panel">
+        <div className="panel-head">
+          <div>
+            <h2>If you want more to work with</h2>
+            <p>General, low-risk ways people commonly increase their monthly surplus — pick what fits your situation.</p>
+          </div>
+        </div>
+        <div className="idea-grid">
+          {MONEY_IDEAS.map(idea => (
+            <div className="idea-card" key={idea.title}>
+              <span className="glyph">{idea.glyph}</span>
+              <h4>{idea.title}</h4>
+              <p>{idea.body}</p>
+              <div className="effort">{idea.effort}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </React.Fragment>
+  );
+}
+
+/* =========================================================
+   PAGE: SETTINGS
+   ========================================================= */
+function SettingsPage({ state, setState, notify }) {
+  const fileInputRef = useRef(null);
+
+  function updateSetting(key, value) {
+    setState(s => ({ ...s, settings: { ...s.settings, [key]: value } }));
+  }
+
+  function exportData() {
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ledger-compass-backup-${todayYM()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    notify("Backup downloaded.");
+  }
+
+  function importData(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result);
+        if (!parsed || typeof parsed !== "object") throw new Error("bad shape");
+        setState({ ...structuredCloneSafe(DEFAULT_STATE), ...parsed, settings: { ...DEFAULT_STATE.settings, ...(parsed.settings || {}) } });
+        notify("Data imported.");
+      } catch (err) {
+        notify("That file doesn't look like a valid backup.");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  }
+
+  function clearAll() {
+    if (window.confirm("This clears every expense, income entry, and budget on this device. This can't be undone — continue?")) {
+      setState(structuredCloneSafe(DEFAULT_STATE));
+      notify("All data cleared.");
+    }
+  }
+
+  return (
+    <div className="panel">
+      <div className="panel-head"><div><h2>Settings &amp; data</h2><p>Everything lives in this browser's local storage — nothing is sent to a server.</p></div></div>
+      <div className="settings-grid" style={{ marginBottom: 22 }}>
+        <label className="field">Currency
+          <select value={state.settings.currency} onChange={e => updateSetting("currency", e.target.value)}>
+            {Object.keys(CURRENCIES).map(c => <option key={c} value={c}>{c} ({CURRENCIES[c].symbol})</option>)}
+          </select>
         </label>
-        <button class="btn small" id="drawClear">Clear</button>
+      </div>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <button className="btn" onClick={exportData}>⭳ Export backup (.json)</button>
+        <button className="btn" onClick={() => fileInputRef.current && fileInputRef.current.click()}>⭱ Import backup</button>
+        <input type="file" accept="application/json" ref={fileInputRef} onChange={importData} style={{ display: "none" }} />
+        <button className="btn btn-danger" onClick={clearAll}>Clear all data</button>
+      </div>
+      <div className="footer-note">
+        Ledger &amp; Compass stores everything locally on this device via <code>localStorage</code>. Clearing your browser data, using a different browser, or a different device will not carry your numbers over — use "Export backup" regularly if you'd like a copy.
       </div>
     </div>
-  </section>
-
-  <!-- Y — YAY (CONFETTI) -->
-  <section class="entry" id="entry-y">
-    <div class="entry-head">
-      <span class="dropcap" aria-hidden="true">Y</span>
-      <div>
-        <h2 class="headword">Yay <span class="phon">/jeɪ/</span></h2>
-        <p class="pos">interactive · interjection</p>
-      </div>
-    </div>
-    <p class="definition">A small, entirely unnecessary celebration, thrown for no reason but that you asked for one.</p>
-    <div class="demo" style="position:relative; overflow:hidden;">
-      <button class="btn primary" id="confettiBtn">Celebrate</button>
-      <canvas id="confettiCanvas" style="position:fixed; inset:0; pointer-events:none; width:100vw; height:100vh; z-index:600;"></canvas>
-    </div>
-  </section>
-
-  <!-- Z — ZOOM -->
-  <section class="entry" id="entry-z">
-    <div class="entry-head">
-      <span class="dropcap" aria-hidden="true">Z</span>
-      <div>
-        <h2 class="headword">Zoom <span class="phon">/zuːm/</span></h2>
-        <p class="pos">interactive · verb</p>
-      </div>
-    </div>
-    <p class="definition">To bring the fine grain of a plate up close, following the loupe wherever your cursor takes it.</p>
-    <div class="demo">
-      <div class="zoom-frame" id="zoomFrame"></div>
-      <p class="hint" style="text-align:center;">Move your cursor over the plate.</p>
-    </div>
-  </section>
-
-</main>
-
-<footer>
-  <p>Field guide compiled in one HTML file — no build step, no external requests. Deploy it as a static site with GitHub Actions.</p>
-  <p style="margin-top:14px;">Press <code style="display:inline;">?</code> anywhere for the key to the whole alphabet.</p>
-</footer>
-
-<script>
-(function(){
-"use strict";
-
-/* ============================================================
-   Shared helpers
-   ============================================================ */
-var toastStack = document.getElementById('toastStack');
-function toast(message, kind){
-  var el = document.createElement('div');
-  el.className = 'toast';
-  if(kind === 'warn'){ el.style.background = 'var(--red)'; }
-  el.textContent = message;
-  toastStack.appendChild(el);
-  requestAnimationFrame(function(){ el.classList.add('show'); });
-  setTimeout(function(){
-    el.classList.remove('show');
-    setTimeout(function(){ el.remove(); }, 300);
-  }, 2600);
+  );
 }
-document.querySelectorAll('[data-toast]').forEach(function(btn){
-  btn.addEventListener('click', function(){
-    toast(btn.getAttribute('data-toast'), btn.getAttribute('data-kind'));
-  });
-});
 
-/* ============================================================
-   Theme (persisted) + accent colour (C)
-   ============================================================ */
-var root = document.documentElement;
-var themeToggle = document.getElementById('themeToggle');
-var themeLabel = document.getElementById('themeLabel');
-function applyTheme(mode){
-  root.setAttribute('data-theme', mode);
-  themeToggle.setAttribute('aria-pressed', mode === 'dark');
-  themeLabel.textContent = mode === 'dark' ? 'Dark mode' : 'Light mode';
-  try{ localStorage.setItem('az-theme', mode); }catch(e){}
-}
-(function(){
-  var saved = null;
-  try{ saved = localStorage.getItem('az-theme'); }catch(e){}
-  if(!saved){ saved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
-  applyTheme(saved);
-})();
-themeToggle.addEventListener('click', function(){
-  applyTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
-});
+/* =========================================================
+   ROOT APP
+   ========================================================= */
+function App() {
+  const [state, setState] = useState(loadState);
+  const [page, setPage] = useState("overview");
+  const [ym, setYm] = useState(todayYM());
+  const [toastMsg, setToastMsg] = useState("");
+  const [sidebarTheme, setSidebarTheme] = useState(state.settings.theme || "dark");
 
-var accentPicker = document.getElementById('accentPicker');
-var DEFAULT_ACCENT = '#c1811f';
-(function(){
-  var savedAccent = null;
-  try{ savedAccent = localStorage.getItem('az-accent'); }catch(e){}
-  if(savedAccent){ root.style.setProperty('--accent', savedAccent); root.style.setProperty('--ochre', savedAccent); accentPicker.value = savedAccent; }
-})();
-accentPicker.addEventListener('input', function(){
-  root.style.setProperty('--accent', accentPicker.value);
-  root.style.setProperty('--ochre', accentPicker.value);
-  try{ localStorage.setItem('az-accent', accentPicker.value); }catch(e){}
-});
-document.getElementById('accentReset').addEventListener('click', function(){
-  accentPicker.value = DEFAULT_ACCENT;
-  root.style.setProperty('--accent', DEFAULT_ACCENT);
-  root.style.setProperty('--ochre', DEFAULT_ACCENT);
-  try{ localStorage.removeItem('az-accent'); }catch(e){}
-  toast('Accent reset.');
-});
+  useEffect(() => { saveState(state); }, [state]);
+  useEffect(() => {
+    document.body.setAttribute("data-theme", state.settings.theme || "dark");
+    setSidebarTheme(state.settings.theme || "dark");
+  }, [state.settings.theme]);
 
-/* ============================================================
-   Sticky A–Z index + scroll-spy
-   ============================================================ */
-var letters = 'abcdefghijklmnopqrstuvwxyz'.split('');
-var indexList = document.getElementById('indexList');
-letters.forEach(function(l){
-  var li = document.createElement('li');
-  var a = document.createElement('a');
-  a.href = '#entry-' + l;
-  a.textContent = l.toUpperCase();
-  a.dataset.letter = l;
-  li.appendChild(a);
-  indexList.appendChild(li);
-});
-var indexLinks = Array.prototype.slice.call(indexList.querySelectorAll('a'));
-var sections = letters.map(function(l){ return document.getElementById('entry-' + l); });
-var spy = new IntersectionObserver(function(entries){
-  entries.forEach(function(entry){
-    var letter = entry.target.id.replace('entry-', '');
-    var link = indexList.querySelector('a[data-letter="' + letter + '"]');
-    if(entry.isIntersecting){
-      indexLinks.forEach(function(a){ a.classList.remove('active'); });
-      if(link) link.classList.add('active');
-    }
-  });
-}, { rootMargin: '-40% 0px -55% 0px' });
-sections.forEach(function(s){ if(s) spy.observe(s); });
+  const fmt = useFormatter(state.settings.currency);
+  const notify = useCallback((msg) => setToastMsg(msg), []);
 
-/* ============================================================
-   Scroll progress bar (P, top)
-   ============================================================ */
-var scrollProgress = document.getElementById('scrollProgress');
-window.addEventListener('scroll', function(){
-  var h = document.documentElement;
-  var pct = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
-  scrollProgress.style.width = pct + '%';
-}, { passive: true });
-
-/* ============================================================
-   A — Animate
-   ============================================================ */
-var animBtn = document.getElementById('animBtn');
-var animShape = document.getElementById('animShape');
-animBtn.addEventListener('click', function(){
-  animShape.style.animation = 'none';
-  void animShape.offsetWidth; /* restart */
-  animShape.style.animation = 'azSpin .8s ease';
-});
-var styleSheet = document.createElement('style');
-styleSheet.textContent = '@keyframes azSpin{ 0%{ transform:rotate(0) scale(1);} 50%{ transform:rotate(200deg) scale(1.25); } 100%{ transform:rotate(360deg) scale(1);} }';
-document.head.appendChild(styleSheet);
-
-/* ============================================================
-   B — Background particle canvas
-   ============================================================ */
-(function(){
-  var canvas = document.getElementById('bgCanvas');
-  var ctx = canvas.getContext('2d');
-  var box = canvas.parentElement;
-  var points = [];
-  var mouse = { x: null, y: null };
-  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  function resize(){
-    canvas.width = box.clientWidth;
-    canvas.height = 180;
-    points = [];
-    var count = Math.round(canvas.width / 26);
-    for(var i=0;i<count;i++){
-      points.push({
-        x: Math.random()*canvas.width,
-        y: Math.random()*canvas.height,
-        vx: (Math.random()-0.5)*0.4,
-        vy: (Math.random()-0.5)*0.4
-      });
-    }
+  function toggleTheme() {
+    setState(s => ({ ...s, settings: { ...s.settings, theme: s.settings.theme === "light" ? "dark" : "light" } }));
   }
-  window.addEventListener('resize', resize);
-  resize();
 
-  canvas.addEventListener('mousemove', function(e){
-    var r = canvas.getBoundingClientRect();
-    mouse.x = e.clientX - r.left;
-    mouse.y = e.clientY - r.top;
-  });
-  canvas.addEventListener('mouseleave', function(){ mouse.x = null; mouse.y = null; });
-
-  function tick(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    var inkColor = getComputedStyle(document.body).getPropertyValue('--ink-soft').trim() || '#54594f';
-    points.forEach(function(p){
-      if(!reduced){
-        p.x += p.vx; p.y += p.vy;
-        if(p.x < 0 || p.x > canvas.width) p.vx *= -1;
-        if(p.y < 0 || p.y > canvas.height) p.vy *= -1;
-      }
-    });
-    for(var i=0;i<points.length;i++){
-      for(var j=i+1;j<points.length;j++){
-        var dx = points[i].x-points[j].x, dy = points[i].y-points[j].y;
-        var d = Math.sqrt(dx*dx+dy*dy);
-        if(d < 90){
-          ctx.strokeStyle = inkColor; ctx.globalAlpha = (1 - d/90) * 0.5;
-          ctx.beginPath(); ctx.moveTo(points[i].x, points[i].y); ctx.lineTo(points[j].x, points[j].y); ctx.stroke();
-        }
-      }
-      if(mouse.x !== null){
-        var mdx = points[i].x-mouse.x, mdy = points[i].y-mouse.y;
-        var md = Math.sqrt(mdx*mdx+mdy*mdy);
-        if(md < 120){
-          ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--accent') || '#c1811f';
-          ctx.globalAlpha = (1 - md/120);
-          ctx.beginPath(); ctx.moveTo(points[i].x, points[i].y); ctx.lineTo(mouse.x, mouse.y); ctx.stroke();
-        }
-      }
-    }
-    ctx.globalAlpha = 1;
-    points.forEach(function(p){
-      ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--accent') || '#c1811f';
-      ctx.beginPath(); ctx.arc(p.x, p.y, 2, 0, Math.PI*2); ctx.fill();
-    });
-    requestAnimationFrame(tick);
-  }
-  tick();
-})();
-
-/* ============================================================
-   D — Drag & drop reorder
-   ============================================================ */
-(function(){
-  var list = document.getElementById('dragList');
-  var dragged;
-  list.querySelectorAll('li').forEach(function(li){
-    li.addEventListener('dragstart', function(){ dragged = li; setTimeout(function(){ li.style.opacity = '0.4'; },0); });
-    li.addEventListener('dragend', function(){ li.style.opacity = '1'; });
-    li.addEventListener('dragover', function(e){ e.preventDefault(); });
-    li.addEventListener('drop', function(e){
-      e.preventDefault();
-      if(dragged && dragged !== li){
-        var items = Array.prototype.slice.call(list.children);
-        var from = items.indexOf(dragged), to = items.indexOf(li);
-        if(from < to){ li.after(dragged); } else { li.before(dragged); }
-      }
-    });
-  });
-})();
-
-/* ============================================================
-   E — Konami code easter egg
-   ============================================================ */
-(function(){
-  var seq = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
-  var pos = 0;
-  var status = document.getElementById('konamiStatus');
-  document.addEventListener('keydown', function(e){
-    var key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
-    if(key === seq[pos]){
-      pos++;
-      status.textContent = 'Progress: ' + pos + ' / ' + seq.length;
-      if(pos === seq.length){
-        status.textContent = '✨ You found it. The guide salutes you.';
-        toast('Easter egg unlocked!');
-        pos = 0;
-      }
-    } else {
-      pos = (key === seq[0]) ? 1 : 0;
-    }
-  });
-})();
-
-/* ============================================================
-   F — Form validation
-   ============================================================ */
-(function(){
-  var email = document.getElementById('fEmail');
-  var emailErr = document.getElementById('fEmailErr');
-  var pass = document.getElementById('fPass');
-  var passErr = document.getElementById('fPassErr');
-  var passBar = document.getElementById('fPassBar');
-  var submit = document.getElementById('fSubmit');
-  var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  function scorePassword(v){
-    var score = 0;
-    if(v.length >= 8) score++;
-    if(/[A-Z]/.test(v)) score++;
-    if(/[0-9]/.test(v)) score++;
-    if(/[^A-Za-z0-9]/.test(v)) score++;
-    return score;
-  }
-  pass.addEventListener('input', function(){
-    var s = scorePassword(pass.value);
-    var pct = (s/4*100);
-    passBar.style.width = pct + '%';
-    passBar.style.background = s <= 1 ? 'var(--red)' : (s <= 3 ? 'var(--ochre)' : 'var(--teal)');
-  });
-  submit.addEventListener('click', function(){
-    var ok = true;
-    if(!emailRe.test(email.value)){ emailErr.textContent = 'That doesn\u2019t look like an email address.'; ok = false; }
-    else { emailErr.textContent = ''; }
-    if(scorePassword(pass.value) < 2){ passErr.textContent = 'Use 8+ characters, mixing case, numbers or symbols.'; ok = false; }
-    else { passErr.textContent = ''; }
-    if(ok){ toast('Form looks good.'); } else { toast('Fix the highlighted fields.', 'warn'); }
-  });
-})();
-
-/* ============================================================
-   G — Gallery
-   ============================================================ */
-(function(){
-  var slides = [
-    { grad: 'linear-gradient(135deg,#c1811f,#6e4a13)', label: 'Plate I — Ochre field' },
-    { grad: 'linear-gradient(135deg,#2e6e62,#123a32)', label: 'Plate II — Deep teal' },
-    { grad: 'linear-gradient(135deg,#a8433f,#4d1e1c)', label: 'Plate III — Rust bloom' },
-    { grad: 'linear-gradient(135deg,#54594f,#1c2321)', label: 'Plate IV — Slate dusk' }
+  const NAV = [
+    { id: "overview", label: "Overview", icon: "◈" },
+    { id: "expenses", label: "Expenses", icon: "▤" },
+    { id: "income", label: "Income & budgets", icon: "◎" },
+    { id: "invest", label: "Invest & grow", icon: "⌂" },
+    { id: "settings", label: "Settings & data", icon: "⚙" },
   ];
-  var track = document.getElementById('galTrack');
-  var dots = document.getElementById('galDots');
-  slides.forEach(function(s, i){
-    var d = document.createElement('div');
-    d.className = 'gallery-slide';
-    d.style.background = s.grad;
-    d.textContent = s.label;
-    track.appendChild(d);
-    var dot = document.createElement('button');
-    dot.setAttribute('aria-label', 'Go to slide ' + (i+1));
-    dots.appendChild(dot);
-  });
-  var idx = 0;
-  var dotEls = dots.querySelectorAll('button');
-  function render(){
-    track.style.transform = 'translateX(-' + (idx*100) + '%)';
-    dotEls.forEach(function(d,i){ d.classList.toggle('active', i===idx); });
-  }
-  document.getElementById('galPrev').addEventListener('click', function(){ idx = (idx-1+slides.length)%slides.length; render(); });
-  document.getElementById('galNext').addEventListener('click', function(){ idx = (idx+1)%slides.length; render(); });
-  dotEls.forEach(function(d,i){ d.addEventListener('click', function(){ idx=i; render(); }); });
-  render();
-})();
 
-/* ============================================================
-   H — Tooltip
-   ============================================================ */
-(function(){
-  var bubble = document.createElement('div');
-  bubble.className = 'tooltip-bubble';
-  document.body.appendChild(bubble);
-  document.querySelectorAll('[data-tooltip]').forEach(function(el){
-    el.addEventListener('mouseenter', function(){
-      bubble.textContent = el.getAttribute('data-tooltip');
-      bubble.classList.add('show');
-    });
-    el.addEventListener('mousemove', function(e){
-      bubble.style.left = (e.clientX + 14) + 'px';
-      bubble.style.top = (e.clientY + 14) + 'px';
-    });
-    el.addEventListener('mouseleave', function(){ bubble.classList.remove('show'); });
-    el.addEventListener('focus', function(){
-      var r = el.getBoundingClientRect();
-      bubble.textContent = el.getAttribute('data-tooltip');
-      bubble.style.left = r.left + 'px'; bubble.style.top = (r.bottom+8) + 'px';
-      bubble.classList.add('show');
-    });
-    el.addEventListener('blur', function(){ bubble.classList.remove('show'); });
-    el.setAttribute('tabindex','0');
-  });
-})();
-
-/* ============================================================
-   I — IntersectionObserver reveal
-   ============================================================ */
-(function(){
-  var reveals = document.querySelectorAll('.reveal');
-  var io = new IntersectionObserver(function(entries){
-    entries.forEach(function(entry){
-      if(entry.isIntersecting){ entry.target.classList.add('in'); io.unobserve(entry.target); }
-    });
-  }, { threshold: 0.2 });
-  reveals.forEach(function(el){ io.observe(el); });
-})();
-
-/* ============================================================
-   J — JSON-driven quote generator
-   ============================================================ */
-(function(){
-  var notes = [
-    { text: "Fog lifted at 0700; visibility improved within the hour.", tag: "weather" },
-    { text: "Tracks in the mud suggest a fox passed before dawn.", tag: "wildlife" },
-    { text: "The stream has risen four centimetres since Tuesday.", tag: "hydrology" },
-    { text: "A single oak stands apart from the treeline — worth marking.", tag: "flora" },
-    { text: "Wind shifted north-west; the swallows left an hour later.", tag: "weather" }
-  ];
-  var out = document.getElementById('jsonQuote');
-  document.getElementById('jsonBtn').addEventListener('click', function(){
-    var n = notes[Math.floor(Math.random()*notes.length)];
-    out.textContent = '\u201c' + n.text + '\u201d — ' + n.tag;
-  });
-})();
-
-/* ============================================================
-   K — Keyboard panel + global "?" shortcuts
-   ============================================================ */
-(function(){
-  var panel = document.getElementById('keyPanel');
-  var out = document.getElementById('keyOut');
-  panel.addEventListener('keydown', function(e){
-    out.textContent = e.key;
-    e.preventDefault();
-  });
-  document.addEventListener('keydown', function(e){
-    if(e.key === '?' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA'){
-      toast('Shortcut key: any letter A–Z scrolls to that entry\u2019s neighbourhood via the index bar above.');
-    }
-  });
-})();
-
-/* ============================================================
-   L — Local storage todo list
-   ============================================================ */
-(function(){
-  var KEY = 'az-todos';
-  var input = document.getElementById('todoInput');
-  var addBtn = document.getElementById('todoAdd');
-  var list = document.getElementById('todoList');
-  function load(){ try{ return JSON.parse(localStorage.getItem(KEY) || '[]'); }catch(e){ return []; } }
-  function save(items){ try{ localStorage.setItem(KEY, JSON.stringify(items)); }catch(e){} }
-  function render(){
-    var items = load();
-    list.innerHTML = '';
-    items.forEach(function(item, i){
-      var li = document.createElement('li');
-      if(item.done) li.classList.add('done');
-      var cb = document.createElement('input');
-      cb.type = 'checkbox'; cb.checked = item.done;
-      cb.addEventListener('change', function(){ item.done = cb.checked; save(items); render(); });
-      var span = document.createElement('span'); span.textContent = item.text;
-      var del = document.createElement('button'); del.textContent = 'Remove';
-      del.addEventListener('click', function(){ items.splice(i,1); save(items); render(); });
-      li.appendChild(cb); li.appendChild(span); li.appendChild(del);
-      list.appendChild(li);
-    });
-  }
-  addBtn.addEventListener('click', function(){
-    var v = input.value.trim();
-    if(!v) return;
-    var items = load();
-    items.push({ text: v, done: false });
-    save(items); input.value=''; render();
-  });
-  input.addEventListener('keydown', function(e){ if(e.key === 'Enter') addBtn.click(); });
-  render();
-})();
-
-/* ============================================================
-   M — Modal
-   ============================================================ */
-(function(){
-  var backdrop = document.getElementById('modalBackdrop');
-  var openBtn = document.getElementById('openModal');
-  var closeBtn = document.getElementById('closeModal');
-  var lastFocused;
-  function open(){
-    lastFocused = document.activeElement;
-    backdrop.classList.add('open');
-    closeBtn.focus();
-  }
-  function close(){
-    backdrop.classList.remove('open');
-    if(lastFocused) lastFocused.focus();
-  }
-  openBtn.addEventListener('click', open);
-  closeBtn.addEventListener('click', close);
-  backdrop.addEventListener('click', function(e){ if(e.target === backdrop) close(); });
-  document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && backdrop.classList.contains('open')) close(); });
-})();
-
-/* ============================================================
-   O — Online status
-   ============================================================ */
-(function(){
-  var out = document.getElementById('onlineStatus');
-  function update(){
-    out.textContent = navigator.onLine ? 'online' : 'offline';
-    out.style.color = navigator.onLine ? 'var(--teal)' : 'var(--red)';
-  }
-  window.addEventListener('online', update);
-  window.addEventListener('offline', update);
-  update();
-})();
-
-/* ============================================================
-   P — Task progress bar
-   ============================================================ */
-(function(){
-  var bar = document.getElementById('taskBar');
-  var pct = 0;
-  document.getElementById('taskStep').addEventListener('click', function(){
-    pct = Math.min(100, pct+10);
-    bar.style.width = pct + '%';
-    if(pct === 100) toast('Task complete.');
-  });
-  document.getElementById('taskReset').addEventListener('click', function(){
-    pct = 0; bar.style.width = '0%';
-  });
-})();
-
-/* ============================================================
-   Q — Quiz
-   ============================================================ */
-(function(){
-  var questions = [
-    { q: 'What letter opens with a particle background?', options: ['A','B','G'], answer: 'B' },
-    { q: 'Which entry lets you pick an accent colour?', options: ['C','D','F'], answer: 'C' },
-    { q: 'Which entry reads your notes aloud?', options: ['U','V','W'], answer: 'V' }
-  ];
-  var box = document.getElementById('quizBox');
-  var score = 0, answered = 0;
-  questions.forEach(function(item, qi){
-    var wrap = document.createElement('div');
-    wrap.style.marginBottom = '14px';
-    var p = document.createElement('p');
-    p.style.margin = '0 0 6px'; p.style.fontWeight = '600'; p.textContent = (qi+1) + '. ' + item.q;
-    wrap.appendChild(p);
-    var rowEl = document.createElement('div'); rowEl.className = 'row';
-    item.options.forEach(function(opt){
-      var b = document.createElement('button');
-      b.className = 'btn small'; b.textContent = opt;
-      b.addEventListener('click', function(){
-        if(b.dataset.locked) return;
-        rowEl.querySelectorAll('button').forEach(function(x){ x.dataset.locked = '1'; });
-        if(opt === item.answer){ b.style.background='var(--teal)'; b.style.color='#fff'; b.style.borderColor='var(--teal)'; score++; }
-        else { b.style.background='var(--red)'; b.style.color='#fff'; b.style.borderColor='var(--red)'; }
-        answered++;
-        if(answered === questions.length){
-          var res = document.createElement('p');
-          res.style.fontFamily = 'var(--serif)';
-          res.textContent = 'Score: ' + score + ' / ' + questions.length;
-          box.appendChild(res);
-        }
-      });
-      rowEl.appendChild(b);
-    });
-    wrap.appendChild(rowEl);
-    box.appendChild(wrap);
-  });
-})();
-
-/* ============================================================
-   R — Range slider live preview
-   ============================================================ */
-(function(){
-  var slider = document.getElementById('rangeSlider');
-  var circle = document.getElementById('rangeCircle');
-  slider.addEventListener('input', function(){
-    circle.setAttribute('r', slider.value/2.4);
-  });
-})();
-
-/* ============================================================
-   S — Live search filter
-   ============================================================ */
-(function(){
-  var specimens = ['Amber resin','Basalt column','Cicada husk','Driftwood','Ermine track','Fern frond','Garnet crystal','Heron feather'];
-  var input = document.getElementById('searchInput');
-  var list = document.getElementById('searchList');
-  function render(){
-    var q = input.value.trim().toLowerCase();
-    list.innerHTML = '';
-    specimens.filter(function(s){ return s.toLowerCase().indexOf(q) !== -1; }).forEach(function(s){
-      var li = document.createElement('li');
-      if(q){
-        var idx = s.toLowerCase().indexOf(q);
-        li.innerHTML = s.slice(0,idx) + '<mark>' + s.slice(idx, idx+q.length) + '</mark>' + s.slice(idx+q.length);
-      } else { li.textContent = s; }
-      list.appendChild(li);
-    });
-  }
-  input.addEventListener('input', render);
-  render();
-})();
-
-/* ============================================================
-   T — Tabs
-   ============================================================ */
-(function(){
-  var content = {
-    soil: 'Dark loam, rich with root fibre and last season\u2019s leaf litter.',
-    water: 'Cold and clear, running fastest where the bank narrows.',
-    air: 'Still at ground level, moving steadily higher in the canopy.'
+  const PAGE_META = {
+    overview: { title: "Overview", desc: "Your money, at a glance — how much came in, went out, and what's left over." },
+    expenses: { title: "Expenses", desc: "Log what you spend and see it sorted by category." },
+    income: { title: "Income & budgets", desc: "Track income sources and set soft caps per category." },
+    invest: { title: "Invest & grow", desc: "Turn a monthly surplus into a plan, with educational context on where it could go." },
+    settings: { title: "Settings & data", desc: "Currency, backups, and everything about how your data is stored." },
   };
-  var buttons = document.querySelectorAll('.tabs-head [role="tab"]');
-  var panel = document.getElementById('tabPanel');
-  function select(name){
-    buttons.forEach(function(b){ b.setAttribute('aria-selected', b.dataset.tab === name); });
-    panel.textContent = content[name];
-  }
-  buttons.forEach(function(b){ b.addEventListener('click', function(){ select(b.dataset.tab); }); });
-  select('soil');
-})();
 
-/* ============================================================
-   U — Undo / redo text editor
-   ============================================================ */
-(function(){
-  var area = document.getElementById('undoArea');
-  var history = [''];
-  var pointer = 0;
-  var typingTimer;
-  area.addEventListener('input', function(){
-    clearTimeout(typingTimer);
-    typingTimer = setTimeout(function(){
-      history = history.slice(0, pointer+1);
-      history.push(area.value);
-      pointer = history.length-1;
-    }, 300);
-  });
-  document.getElementById('undoBtn').addEventListener('click', function(){
-    if(pointer > 0){ pointer--; area.value = history[pointer]; }
-  });
-  document.getElementById('redoBtn').addEventListener('click', function(){
-    if(pointer < history.length-1){ pointer++; area.value = history[pointer]; }
-  });
-})();
+  return (
+    <div className="app-shell">
+      <aside className="sidebar">
+        <div className="brand">
+          <div className="brand-mark">🧭</div>
+          <div className="brand-text">
+            <strong>Ledger &amp; Compass</strong>
+            <span>Personal finance, on your device</span>
+          </div>
+        </div>
 
-/* ============================================================
-   V — Voice (SpeechSynthesis)
-   ============================================================ */
-(function(){
-  var speakBtn = document.getElementById('voiceSpeak');
-  var stopBtn = document.getElementById('voiceStop');
-  var textEl = document.getElementById('voiceText');
-  var hint = document.getElementById('voiceHint');
-  if(!('speechSynthesis' in window)){
-    hint.textContent = 'Speech synthesis isn\u2019t available in this browser.';
-    speakBtn.disabled = true; stopBtn.disabled = true;
-    return;
-  }
-  speakBtn.addEventListener('click', function(){
-    window.speechSynthesis.cancel();
-    var u = new SpeechSynthesisUtterance(textEl.value);
-    window.speechSynthesis.speak(u);
-  });
-  stopBtn.addEventListener('click', function(){ window.speechSynthesis.cancel(); });
-})();
+        <nav className="primary-nav" aria-label="Main">
+          {NAV.map(item => (
+            <button key={item.id} className={`nav-item${page === item.id ? " active" : ""}`} onClick={() => setPage(item.id)}>
+              <Icon>{item.icon}</Icon>{item.label}
+            </button>
+          ))}
+        </nav>
 
-/* ============================================================
-   W — Web Share / Clipboard
-   ============================================================ */
-(function(){
-  document.getElementById('shareBtn').addEventListener('click', function(){
-    if(navigator.share){
-      navigator.share({ title: document.title, url: location.href }).catch(function(){});
-    } else {
-      toast('Web Share isn\u2019t available here — copying the link instead.');
-      copyLink();
-    }
-  });
-  function copyLink(){
-    if(navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(location.href).then(function(){ toast('Link copied.'); }).catch(function(){ toast('Could not copy.', 'warn'); });
-    } else {
-      var ta = document.createElement('textarea');
-      ta.value = location.href; document.body.appendChild(ta); ta.select();
-      try{ document.execCommand('copy'); toast('Link copied.'); }catch(e){ toast('Could not copy.', 'warn'); }
-      ta.remove();
-    }
-  }
-  document.getElementById('copyBtn').addEventListener('click', copyLink);
-})();
+        <div className="sidebar-footer">
+          <div className="month-picker">
+            <button onClick={() => setYm(shiftYM(ym, -1))} aria-label="Previous month">‹</button>
+            <span>{MONTH_FMT(ym)}</span>
+            <button onClick={() => setYm(shiftYM(ym, 1))} aria-label="Next month">›</button>
+          </div>
+          <div className="theme-toggle">
+            <span>{sidebarTheme === "light" ? "Light" : "Dark"} mode</span>
+            <div className={`switch${sidebarTheme === "light" ? " on" : ""}`} onClick={toggleTheme} role="switch" aria-checked={sidebarTheme === "light"} tabIndex="0"
+              onKeyDown={e => { if (e.key === "Enter" || e.key === " ") toggleTheme(); }}>
+              <div className="knob"></div>
+            </div>
+          </div>
+        </div>
+      </aside>
 
-/* ============================================================
-   X — XY draw pad
-   ============================================================ */
-(function(){
-  var canvas = document.getElementById('drawCanvas');
-  var ctx = canvas.getContext('2d');
-  var colorInput = document.getElementById('drawColor');
-  var box = canvas.parentElement;
-  function resize(){
-    var data = canvas.toDataURL();
-    canvas.width = box.clientWidth; canvas.height = 180;
-    ctx.fillStyle = '#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
-  }
-  window.addEventListener('resize', resize);
-  resize();
-  var drawing = false;
-  function pos(e){
-    var r = canvas.getBoundingClientRect();
-    var t = e.touches ? e.touches[0] : e;
-    return { x: t.clientX-r.left, y: t.clientY-r.top };
-  }
-  function start(e){ drawing = true; var p = pos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); }
-  function move(e){
-    if(!drawing) return;
-    var p = pos(e);
-    ctx.lineTo(p.x,p.y); ctx.strokeStyle = colorInput.value; ctx.lineWidth = 3; ctx.lineCap='round'; ctx.stroke();
-    e.preventDefault();
-  }
-  function end(){ drawing = false; }
-  canvas.addEventListener('mousedown', start);
-  canvas.addEventListener('mousemove', move);
-  window.addEventListener('mouseup', end);
-  canvas.addEventListener('touchstart', start);
-  canvas.addEventListener('touchmove', move);
-  canvas.addEventListener('touchend', end);
-  document.getElementById('drawClear').addEventListener('click', function(){
-    ctx.fillStyle = '#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
-  });
-})();
+      <main className="content">
+        <div className="page-header">
+          <div>
+            <h1>{PAGE_META[page].title}</h1>
+            <p>{PAGE_META[page].desc}</p>
+          </div>
+        </div>
 
-/* ============================================================
-   Y — Confetti
-   ============================================================ */
-(function(){
-  var canvas = document.getElementById('confettiCanvas');
-  var ctx = canvas.getContext('2d');
-  var pieces = [];
-  var colors = ['#c1811f','#2e6e62','#a8433f','#1c2321'];
-  function resize(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-  window.addEventListener('resize', resize); resize();
-  var running = false;
-  function burst(){
-    for(var i=0;i<120;i++){
-      pieces.push({
-        x: window.innerWidth/2, y: window.innerHeight/3,
-        vx: (Math.random()-0.5)*10, vy: Math.random()*-8-2,
-        color: colors[Math.floor(Math.random()*colors.length)],
-        size: Math.random()*6+4, rot: Math.random()*360, life: 0
-      });
-    }
-    if(!running){ running = true; requestAnimationFrame(loop); }
-  }
-  function loop(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    pieces.forEach(function(p){
-      p.vy += 0.25; p.x += p.vx; p.y += p.vy; p.rot += 6; p.life++;
-      ctx.save();
-      ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180);
-      ctx.fillStyle = p.color; ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size);
-      ctx.restore();
-    });
-    pieces = pieces.filter(function(p){ return p.life < 150 && p.y < window.innerHeight+50; });
-    if(pieces.length){ requestAnimationFrame(loop); } else { running = false; ctx.clearRect(0,0,canvas.width,canvas.height); }
-  }
-  document.getElementById('confettiBtn').addEventListener('click', burst);
-})();
+        {page === "overview" && <OverviewPage state={state} ym={ym} fmt={fmt} />}
+        {page === "expenses" && <ExpensesPage state={state} setState={setState} ym={ym} fmt={fmt} notify={notify} />}
+        {page === "income" && <IncomeBudgetPage state={state} setState={setState} ym={ym} fmt={fmt} notify={notify} />}
+        {page === "invest" && <InvestPage state={state} setState={setState} ym={ym} fmt={fmt} notify={notify} />}
+        {page === "settings" && <SettingsPage state={state} setState={setState} notify={notify} />}
 
-/* ============================================================
-   Z — Zoom lens
-   ============================================================ */
-(function(){
-  var svgPattern = '<svg xmlns="http://www.w3.org/2000/svg" width="440" height="320">' +
-    '<rect width="440" height="320" fill="%23efead8"/>' +
-    '<circle cx="60" cy="60" r="30" fill="%23c1811f"/>' +
-    '<circle cx="160" cy="120" r="18" fill="%232e6e62"/>' +
-    '<circle cx="300" cy="70" r="24" fill="%23a8433f"/>' +
-    '<path d="M20 260 Q120 180 220 260 T420 260" stroke="%231c2321" stroke-width="3" fill="none"/>' +
-    '<circle cx="380" cy="220" r="14" fill="%231c2321"/>' +
-    '</svg>';
-  var frame = document.getElementById('zoomFrame');
-  frame.style.backgroundImage = "url('data:image/svg+xml," + svgPattern + "')";
-  frame.style.backgroundSize = '440px 320px';
-  frame.addEventListener('mousemove', function(e){
-    var r = frame.getBoundingClientRect();
-    var x = (e.clientX - r.left) / r.width * 100;
-    var y = (e.clientY - r.top) / r.height * 100;
-    frame.style.backgroundSize = '660px 480px';
-    frame.style.backgroundPosition = x + '% ' + y + '%';
-  });
-  frame.addEventListener('mouseleave', function(){
-    frame.style.backgroundSize = '440px 320px';
-    frame.style.backgroundPosition = '0 0';
-  });
-})();
+        <div className="footer-note">
+          Ledger &amp; Compass is a static, client-side app — your figures never leave this browser. Investment content is educational only and not a substitute for advice from a licensed professional.
+        </div>
+      </main>
 
-})();
+      <Toast message={toastMsg} onDone={() => setToastMsg("")} />
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
 </script>
 </body>
 </html>
