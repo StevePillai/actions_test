@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Web Dashboard</title>
+    
+    <!-- INLINE CSS STYLING -->
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --accent-color: #4f46e5;
+            --accent-hover: #4338ca;
+            --border-color: #e5e7eb;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --border-color: #334155;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto 30px auto;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .logo-area h1 {
+            font-size: 24px;
+            color: var(--accent-color);
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #clock {
+            font-size: 18px;
+            font-weight: 600;
+            background: var(--card-bg);
+            padding: 8px 15px;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        button {
+            cursor: pointer;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--accent-color);
+            color: white;
+            font-weight: 600;
+            transition: background 0.2s ease, transform 0.1s ease;
+        }
+
+        button:hover {
+            background-color: var(--accent-hover);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .theme-btn {
+            background-color: #6b7280;
+        }
+        .theme-btn:hover {
+            background-color: #4b5563;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card h2 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* App 1: Counter Styles */
+        .counter-display {
+            font-size: 48px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .counter-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        /* App 2: To-Do Styles */
+        .todo-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            outline: none;
+        }
+        input[type="text"]:focus {
+            border-color: var(--accent-color);
+        }
+        .todo-list {
+            list-style: none;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .todo-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: var(--bg-color);
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+        .todo-item.completed span {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+        .todo-item span {
+            cursor: pointer;
+            flex: 1;
+        }
+        .delete-btn {
+            background-color: #ef4444;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        .delete-btn:hover {
+            background-color: #dc2626;
+        }
+
+        /* App 3: Quote Generator Styles */
+        .quote-box {
+            font-style: italic;
+            text-align: center;
+            margin: 20px 0;
+            min-height: 60px;
+            line-height: 1.5;
+        }
+        .author-box {
+            text-align: right;
+            font-weight: 600;
+            color: var(--accent-color);
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- DASHBOARD HEADER -->
+    <header>
+        <div class="logo-area">
+            <h1>Dynamic Control Dashboard</h1>
+        </div>
+        <div class="controls">
+            <div id="clock">00:00:00 PM</div>
+            <button class="theme-btn" onclick="toggleTheme()">Toggle Theme</button>
+        </div>
+    </header>
+
+    <!-- MAIN DASHBOARD CONTENT -->
+    <main class="dashboard-grid">
+
+        <!-- CARD 1: CLICK COUNTER -->
+        <section class="card">
+            <h2>Dynamic Counter</h2>
+            <div class="counter-display" id="counterValue">0</div>
+            <div class="counter-actions">
+                <button onclick="changeCounter(-1)" style="background-color: #de2c2c;">Decrease</button>
+                <button onclick="resetCounter()" style="background-color: #6b7280;">Reset</button>
+                <button onclick="changeCounter(1)" style="background-color: #22c55e;">Increase</button>
+            </div>
+        </section>
+
+        <!-- CARD 2: PERSISTENT TO-DO LIST -->
+        <section class="card">
+            <h2>TaskManager (Local Storage)</h2>
+            <div class="todo-input-group">
+                <input type="text" id="todoInput" placeholder="Add a new task..." onkeypress="handleTodoKey(event)">
+                <button onclick="addTodo()">Add</button>
+            </div>
+            <ul class="todo-list" id="todoList">
+                <!-- Javascript will inject list items here -->
+            </ul>
+        </section>
+
+        <!-- CARD 3: RANDOM QUOTE GENERATOR -->
+        <section class="card">
+            <h2>Inspirational Quotes</h2>
+            <div class="quote-box" id="quoteText">"Click the button below to generate a spark of inspiration."</div>
+            <div class="author-box" id="quoteAuthor"></div>
+            <button onclick="generateQuote()" style="width: 100%;">New Quote</button>
+        </section>
+
+    </main>
+
+    <!-- INLINE JAVASCRIPT LOGIC -->
+    <script>
+        // ==========================================
+        // 1. SYSTEM LOGIC: CLOCK & THEME
+        // ==========================================
+        function updateClock() {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            
+            hours = hours % 12;
+            hours = hours ? hours : 12; // The hour '0' should be '12'
+            const formattedHours = String(hours).padStart(2, '0');
+
+            document.getElementById('clock').textContent = `${formattedHours}:${minutes}:${seconds} ${ampm}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock(); // Initial pull
+
+        function toggleTheme() {
+            const body = document.body;
+            const currentTheme = body.getAttribute('data-theme');
+            if (currentTheme === 'dark') {
+                body.removeAttribute('data-theme');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+            }
+        }
+
+        // ==========================================
+        // 2. COUNTER LOGIC
+        // ==========================================
+        let count = 0;
+        function changeCounter(val) {
+            count += val;
+            document.getElementById('counterValue').textContent = count;
+        }
+        function resetCounter() {
+            count = 0;
+            document.getElementById('counterValue').textContent = count;
+        }
+
+        // ==========================================
+        // 3. TO-DO TASK LOGIC WITH LOCAL STORAGE
+        // ==========================================
+        let todos = JSON.parse(localStorage.getItem('dashboard_todos')) || [];
+
+        function saveTodos() {
+            localStorage.setItem('dashboard_todos', JSON.stringify(todos));
+            renderTodos();
+        }
+
+        function addTodo() {
+            const input = document.getElementById('todoInput');
+            const text = input.value.trim();
+            if (text === '') return;
+
+            todos.push({
+                id: Date.now(),
+                text: text,
+                completed: false
+            });
+            input.value = '';
+            saveTodos();
+        }
+
+        function handleTodoKey(e) {
+            if (e.key === 'Enter') addTodo();
+        }
+
+        function toggleTodo(id) {
+            todos = todos.map(todo => {
+                if (todo.id === id) todo.completed = !todo.completed;
+                return todo;
